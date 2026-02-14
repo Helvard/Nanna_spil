@@ -8,7 +8,9 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies (if any)
-RUN npm ci --only=production
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; \
+    elif [ -f package.json ] && [ "$(node -p "Object.keys(require('./package.json').dependencies||{}).length")" != "0" ]; then npm install --omit=dev; \
+    else echo "No production dependencies to install"; fi
 
 # Copy web games
 COPY Games/ ./Games/
