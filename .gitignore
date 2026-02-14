@@ -51,3 +51,42 @@ Thumbs.db
 
 # Audio files (if they're large)
 Lyd_bogstav_spil/*.wav
+
+# Old versions and development files
+old_versions/
+*.old
+*.backup
+*_working.html
+*_improved.html
+*_test.html
+
+# Documentation and drafts
+*.docx
+*.doc
+*.txt
+!README.md
+!requirements.txt
+
+# Ideas and planning
+ideer/
+
+# Bug reports and notes
+Kalaha_bugs.txt
+NOTES.md
+
+# Docker
+docker-compose.override.yml
+.env.local
+.env.development
+
+# Node modules (if we add any)
+node_modules/
+
+# Build artifacts
+dist/
+build/
+
+# Keep only the final, polished games
+# Games/ folder and its contents should be tracked
+# Assets folder should be tracked
+# Final HTML games should be tracked

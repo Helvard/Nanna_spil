@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐾 Paw Patrol Kalaha - Nyt Spil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: url('../../paw_cursor_mac.png'), auto;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-image: url('../../paw_patrol/Adventure_Bay_%28S3%29.webp');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            animation: containerFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes containerFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a5490;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .game-modes {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .mode-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 20px;
+            padding: 30px;
+            min-width: 250px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+            border-color: #1a5490;
+        }
+
+        .mode-card.selected {
+            border-color: #e63946;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+            transform: scale(1.05);
+        }
+
+        .mode-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .mode-title {
+            font-size: 1.5em;
+            color: #1a5490;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .mode-description {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .avatar-selection {
+            margin: 30px 0;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .avatar-option {
+            width: 100px;
+            height: 100px;
+            border-radius: 15px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            object-fit: cover;
+        }
+
+        .avatar-option:hover {
+            transform: scale(1.05) rotate(3deg);
+            border-color: #1a5490;
+            box-shadow: 0 8px 20px rgba(26, 84, 144, 0.3);
+        }
+
+        .avatar-option.selected {
+            border-color: #e63946;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(230, 57, 70, 0.5);
+            animation: selectedPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes selectedPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(230, 57, 70, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(230, 57, 70, 0.8); }
+        }
+
+        button {
+            background: linear-gradient(135deg, #1a5490 0%, #0d3a6b 100%);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.3em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            box-shadow: 0 6px 20px rgba(26, 84, 144, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(26, 84, 144, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Game Board */
+        .game-screen {
+            display: none;
+            animation: gameScreenFade 0.5s ease-out;
+        }
+
+        @keyframes gameScreenFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.2em;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #1a5490;
+            object-fit: cover;
+        }
+
+        .player-avatar.current {
+            border-color: #e63946;
+            animation: currentPlayerGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes currentPlayerGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(230, 57, 70, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(230, 57, 70, 0.8); }
+        }
+
+        .player-name {
+            font-weight: bold;
+            color: #1a5490;
+        }
+
+        .player-name.current {
+            color: #e63946;
+        }
+
+        .player-score {
+            background: #1a5490;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .player-score.current {
+            background: #e63946;
+        }
+
+        .game-board {
+            background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .board-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .board-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .store {
+            width: 100px;
+            height: 120px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            border: 3px solid #b8860b;
+        }
+
+        .store-label {
+            font-size: 0.9em;
+            color: #654321;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .store-stones {
+            font-size: 2em;
+            font-weight: bold;
+            color: #654321;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .pits-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .pit {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #d2691e 0%, #8b4513 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.3);
+            border: 2px solid #654321;
+            position: relative;
+        }
+
+        .pit:hover:not(.disabled) {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            background: radial-gradient(circle, #daa520 0%, #b8860b 100%);
+        }
+
+        .pit.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pit-stones {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .pit.highlight {
+            animation: pitHighlight 1s ease-in-out infinite;
+        }
+
+        @keyframes pitHighlight {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+            50% { 
+                transform: scale(1.05); 
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            }
+        }
+
+        .stone-animation {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ffd700 0%, #ffb347 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .feedback {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.5em;
+            font-weight: bold;
+            min-height: 40px;
+            animation: feedbackBounce 0.5s ease-out;
+        }
+
+        @keyframes feedbackBounce {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .feedback.capture {
+            color: #28a745;
+        }
+
+        .feedback.extra-turn {
+            color: #ffc107;
+        }
+
+        .feedback.error {
+            color: #dc3545;
+        }
+
+        /* Victory Screen */
+        .victory-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .victory-message {
+            background: white;
+            border-radius: 30px;
+            padding: 60px;
+            text-align: center;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            animation: victoryBounce 0.8s ease-out;
+            max-width: 500px;
+        }
+
+        @keyframes victoryBounce {
+            0% { transform: scale(0.3) rotate(180deg); opacity: 0; }
+            50% { transform: scale(1.05) rotate(90deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .victory-title {
+            font-size: 3em;
+            color: #1a5490;
+            margin-bottom: 20px;
+        }
+
+        .victory-winner {
+            font-size: 2em;
+            color: #e63946;
+            margin-bottom: 20px;
+        }
+
+        .victory-score {
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .game-modes {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .mode-card {
+                min-width: 200px;
+            }
+
+            .pit {
+                width: 60px;
+                height: 60px;
+            }
+
+            .store {
+                width: 80px;
+                height: 100px;
+            }
+
+            .game-info {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pit {
+                width: 50px;
+                height: 50px;
+            }
+
+            .pit-stones {
+                font-size: 1.2em;
+            }
+
+            .store {
+                width: 70px;
+                height: 80px;
+            }
+
+            .store-stones {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <h1>🐾 Paw Patrol Kalaha 🐾</h1>
+            
+            <div class="game-modes">
+                <div class="mode-card" onclick="selectMode('ai')">
+                    <div class="mode-icon">🤖</div>
+                    <div class="mode-title">vs Computer</div>
+                    <div class="mode-description">Spil mod en smart computermodstander</div>
+                </div>
+                
+                <div class="mode-card" onclick="selectMode('human')">
+                    <div class="mode-icon">👥</div>
+                    <div class="mode-title">2 Spillere</div>
+                    <div class="mode-description">Spil mod en ven på samme enhed</div>
+                </div>
+            </div>
+
+            <div class="avatar-selection" id="avatarSelection" style="display: none;">
+                <h2>🎮 Vælg din avatar:</h2>
+                <div class="avatar-grid" id="avatarGrid"></div>
+                
+                <h2 id="player2AvatarTitle" style="display: none;">🎮 Spiller 2 vælger avatar:</h2>
+                <div class="avatar-grid" id="player2AvatarGrid" style="display: none;"></div>
+            </div>
+
+            <button id="startButton" onclick="startGame()" disabled>Start Spil!</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <h1>🐾 Paw Patrol Kalaha 🐾</h1>
+            
+            <div class="game-info" id="gameInfo"></div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="game-board">
+                <div class="board-top">
+                    <div class="store" id="player2Store">
+                        <div class="store-label">Spiller 2</div>
+                        <div class="store-stones">0</div>
+                    </div>
+                    <div class="pits-row" id="player2Pits"></div>
+                </div>
+                
+                <div class="board-bottom">
+                    <div class="pits-row" id="player1Pits"></div>
+                    <div class="store" id="player1Store">
+                        <div class="store-label">Spiller 1</div>
+                        <div class="store-stones">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <button onclick="restartGame()">Nyt Spil</button>
+            </div>
+        </div>
+
+        <!-- Victory Screen -->
+        <div class="victory-overlay" id="victoryOverlay">
+            <div class="victory-message">
+                <div class="victory-title">🏆 Vinder! 🏆</div>
+                <div class="victory-winner" id="victoryWinner"></div>
+                <div class="victory-score" id="victoryScore"></div>
+                <button onclick="restartGame()">Spil Igen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameMode = null;
+        let player1Avatar = null;
+        let player2Avatar = null;
+        let currentPlayer = 1;
+        let board = [];
+        let gameActive = false;
+        let animating = false;
+        let playerSkillLevel = 1; // 1-5 scale
+        let gameHistory = [];
+        let moveHistory = [];
+        let gameStartTime = 0;
+
+        // Avatar Images
+        const AVATAR_IMAGES = [
+            '../../paw_patrol/download.jpeg',
+            '../../paw_patrol/download (1).jpeg',
+            '../../paw_patrol/download (2).jpeg',
+            '../../paw_patrol/download (3).jpeg',
+            '../../paw_patrol/download (4).jpeg',
+            '../../paw_patrol/download (5).jpeg',
+            '../../paw_patrol/images.jpeg',
+            '../../paw_patrol/images (1).jpeg',
+            '../../paw_patrol/images (2).jpeg',
+            '../../paw_patrol/images (3).jpeg',
+            '../../paw_patrol/images (4).jpeg',
+            '../../paw_patrol/images (5).jpeg'
+        ];
+
+        // Initialize Game
+        function initGame() {
+            createAvatarGrids();
+            setupBoard();
+        }
+
+        function createAvatarGrids() {
+            const grid1 = document.getElementById('avatarGrid');
+            const grid2 = document.getElementById('player2AvatarGrid');
+            
+            grid1.innerHTML = '';
+            grid2.innerHTML = '';
+            
+            AVATAR_IMAGES.forEach((imgSrc, index) => {
+                // Player 1 avatars
+                const img1 = document.createElement('img');
+                img1.src = imgSrc;
+                img1.className = 'avatar-option';
+                img1.onclick = () => selectAvatar(1, imgSrc, img1);
+                grid1.appendChild(img1);
+                
+                // Player 2 avatars
+                const img2 = document.createElement('img');
+                img2.src = imgSrc;
+                img2.className = 'avatar-option';
+                img2.onclick = () => selectAvatar(2, imgSrc, img2);
+                grid2.appendChild(img2);
+            });
+        }
+
+        function selectMode(mode) {
+            gameMode = mode;
+            
+            // Update UI
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.mode-card').classList.add('selected');
+            
+            // Show avatar selection
+            document.getElementById('avatarSelection').style.display = 'block';
+            
+            if (mode === 'human') {
+                document.getElementById('player2AvatarTitle').style.display = 'block';
+                document.getElementById('player2AvatarGrid').style.display = 'grid';
+            }
+        }
+
+        function selectAvatar(player, avatarSrc, element) {
+            if (player === 1) {
+                player1Avatar = avatarSrc;
+                document.querySelectorAll('#avatarGrid .avatar-option').forEach(el => {
+                    el.classList.remove('selected');
+                });
+            } else {
+                player2Avatar = avatarSrc;
+                document.querySelectorAll('#player2AvatarGrid .avatar-option').forEach(el => {
+                    el.classList.remove('selected');
+                });
+            }
+            
+            element.classList.add('selected');
+            checkReadyToStart();
+        }
+
+        function checkReadyToStart() {
+            const ready = gameMode && player1Avatar && (gameMode === 'ai' || player2Avatar);
+            document.getElementById('startButton').disabled = !ready;
+        }
+
+        function setupBoard() {
+            // Initialize board with 6 stones in each pit
+            board = [
+                [0, 6, 6, 6, 6, 6, 6], // Player 1: [store, pit1, pit2, pit3, pit4, pit5, pit6]
+                [0, 6, 6, 6, 6, 6, 6]  // Player 2: [store, pit1, pit2, pit3, pit4, pit5, pit6]
+            ];
+        }
+
+        function loadPlayerData() {
+            // Load skill level and game history from localStorage
+            const savedData = localStorage.getItem('nannaKalahaData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                playerSkillLevel = data.skillLevel || 1;
+                gameHistory = data.gameHistory || [];
+            }
+        }
+
+        function savePlayerData() {
+            // Save skill level and game history to localStorage
+            const data = {
+                skillLevel: playerSkillLevel,
+                gameHistory: gameHistory.slice(-20) // Keep last 20 games
+            };
+            localStorage.setItem('nannaKalahaData', JSON.stringify(data));
+        }
+
+        function evaluatePlayerPerformance() {
+            if (gameMode !== 'ai' || moveHistory.length === 0) return;
+
+            const gameTime = Date.now() - gameStartTime;
+            const playerScore = board[0][0];
+            const aiScore = board[1][0];
+            const won = playerScore > aiScore;
+            
+            // Calculate performance metrics
+            const performance = {
+                won: won,
+                scoreDifference: playerScore - aiScore,
+                moveCount: moveHistory.length,
+                gameTime: gameTime,
+                efficiency: playerScore / moveHistory.length,
+                date: new Date().toISOString()
+            };
+
+            // Add to history
+            gameHistory.push(performance);
+            
+            // Update skill level based on recent performance
+            updateSkillLevel(performance);
+            
+            // Save data
+            savePlayerData();
+            
+            // Show feedback to Nanna
+            showSkillFeedback(performance);
+        }
+
+        function updateSkillLevel(performance) {
+            // Consider last 5 games for skill evaluation
+            const recentGames = gameHistory.slice(-5);
+            if (recentGames.length < 3) return; // Need at least 3 games to evaluate
+
+            const winRate = recentGames.filter(g => g.won).length / recentGames.length;
+            const avgEfficiency = recentGames.reduce((sum, g) => sum + g.efficiency, 0) / recentGames.length;
+            
+            // Adjust skill level based on performance
+            if (winRate >= 0.8 && avgEfficiency > 2.5) {
+                // Winning most games with good efficiency - increase difficulty
+                playerSkillLevel = Math.min(5, playerSkillLevel + 1);
+                showFeedback('Du spiller fantastisk! Sværhedsgrad øget! 🌟', 'extra-turn');
+            } else if (winRate <= 0.2 && avgEfficiency < 1.5) {
+                // Struggling - decrease difficulty
+                playerSkillLevel = Math.max(1, playerSkillLevel - 1);
+                showFeedback('Lad os gøre det lidt nemmere! 💪', 'extra-turn');
+            }
+        }
+
+        function showSkillFeedback(performance) {
+            let feedback = '';
+            if (performance.won) {
+                if (performance.scoreDifference > 20) {
+                    feedback = '🏆 Fantastisk sejr! Du er virkelig god til dette!';
+                } else if (performance.scoreDifference > 10) {
+                    feedback = '🎉 Godt spillet! Du vandt med solid margin!';
+                } else {
+                    feedback = '👏 Tillykke med sejren! Tæt kamp!';
+                }
+            } else {
+                if (performance.scoreDifference < -20) {
+                    feedback = '💪 Godt forsøg! Computeren var stærk i dag. Prøv igen!';
+                } else if (performance.scoreDifference < -10) {
+                    feedback = '🎯 Tæt kamp! Du var tæt på at vinde!';
+                } else {
+                    feedback = '🤝 Uafgjort! I er jævnbyrdige!';
+                }
+            }
+            
+            // Add skill level info
+            feedback += `\nDin niveau: ${'⭐'.repeat(playerSkillLevel)}`;
+            
+            setTimeout(() => {
+                showFeedback(feedback, performance.won ? 'capture' : 'extra-turn');
+            }, 1000);
+        }
+
+        function startGame() {
+            // Hide start screen, show game screen
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            // Set player 2 avatar for AI mode
+            if (gameMode === 'ai') {
+                player2Avatar = '../../paw_patrol/zuma-labrador-retriever-puppy-clip-art-paw-patrol.jpg';
+            }
+            
+            // Initialize game
+            currentPlayer = 1;
+            gameActive = true;
+            animating = false;
+            moveHistory = [];
+            gameStartTime = Date.now();
+            setupBoard();
+            updateDisplay();
+            updateGameInfo();
+            
+            // Show skill level for AI mode
+            if (gameMode === 'ai') {
+                showFeedback(`Spiller mod Computer (Niveau ${'⭐'.repeat(playerSkillLevel)})`, 'extra-turn');
+            } else {
+                showFeedback('Spiller 1 starter!', 'extra-turn');
+            }
+        }
+
+        function updateDisplay() {
+            // Update stores
+            document.querySelector('#player1Store .store-stones').textContent = board[0][0];
+            document.querySelector('#player2Store .store-stones').textContent = board[1][0];
+            
+            // Update pits
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`pit1-${i}`).textContent = board[0][i];
+                document.getElementById(`pit2-${i}`).textContent = board[1][i];
+            }
+        }
+
+        function updateGameInfo() {
+            const gameInfo = document.getElementById('gameInfo');
+            
+            const player1Name = gameMode === 'ai' ? 'Dig' : 'Spiller 1';
+            const player2Name = gameMode === 'ai' ? 'Computer' : 'Spiller 2';
+            
+            gameInfo.innerHTML = `
+                <div class="player-info">
+                    <img src="${player1Avatar}" class="player-avatar ${currentPlayer === 1 ? 'current' : ''}">
+                    <div>
+                        <div class="player-name ${currentPlayer === 1 ? 'current' : ''}">${player1Name}</div>
+                        <div class="player-score ${currentPlayer === 1 ? 'current' : ''}">Point: ${board[0][0]}</div>
+                    </div>
+                </div>
+                <div class="player-info">
+                    <div>
+                        <div class="player-name ${currentPlayer === 2 ? 'current' : ''}">${player2Name}</div>
+                        <div class="player-score ${currentPlayer === 2 ? 'current' : ''}">Point: ${board[1][0]}</div>
+                    </div>
+                    <img src="${player2Avatar}" class="player-avatar ${currentPlayer === 2 ? 'current' : ''}">
+                </div>
+            `;
+        }
+
+        function createPits() {
+            const player1Pits = document.getElementById('player1Pits');
+            const player2Pits = document.getElementById('player2Pits');
+            
+            player1Pits.innerHTML = '';
+            player2Pits.innerHTML = '';
+            
+            // Create pits (note: reversed order for player 2 for proper board layout)
+            for (let i = 6; i >= 1; i--) {
+                const pit1 = document.createElement('div');
+                pit1.className = 'pit';
+                pit1.id = `pit1-${i}`;
+                pit1.textContent = board[0][i];
+                pit1.onclick = () => makeMove(1, i);
+                player1Pits.appendChild(pit1);
+            }
+            
+            for (let i = 1; i <= 6; i++) {
+                const pit2 = document.createElement('div');
+                pit2.className = 'pit';
+                pit2.id = `pit2-${i}`;
+                pit2.textContent = board[1][i];
+                pit2.onclick = () => makeMove(2, i);
+                player2Pits.appendChild(pit2);
+            }
+        }
+
+        function makeMove(player, pitIndex) {
+            if (!gameActive || animating || player !== currentPlayer) return;
+            if (board[player][pitIndex] === 0) {
+                showFeedback('Denne brønd er tom!', 'error');
+                return;
+            }
+            
+            // Get stones from the pit
+            const stones = board[player][pitIndex];
+            board[player][pitIndex] = 0;
+            
+            // Animate the move
+            animateMove(player, pitIndex, stones);
+        }
+
+        function animateMove(player, startPit, stones) {
+            animating = true;
+            let currentStones = stones;
+            let currentPit = startPit;
+            let currentRow = player;
+            
+            // Animation interval
+            const interval = setInterval(() => {
+                if (currentStones === 0) {
+                    clearInterval(interval);
+                    finishMove(player, startPit);
+                    return;
+                }
+                
+                // Move to next position
+                currentPit++;
+                if (currentPit === 7) {
+                    // Reached store
+                    if (currentRow === player) {
+                        board[currentRow][0]++;
+                        updateDisplay();
+                    }
+                    currentPit = 0;
+                    currentRow = currentRow === 1 ? 2 : 1;
+                } else {
+                    // Regular pit
+                    board[currentRow][currentPit]++;
+                    updateDisplay();
+                }
+                
+                currentStones--;
+            }, 300);
+        }
+
+        function finishMove(player, startPit) {
+            // With simplified rules: continue sowing until you hit an empty pit
+            // The last pit determines what happens next
+            
+            // Find the last pit where a stone was placed
+            const totalStones = board[player][startPit] + startPit;
+            let lastPit = totalStones % 7;
+            let lastRow = player;
+            
+            if (lastPit === 0) {
+                // Landed in store - extra turn!
+                showFeedback('Ekstra tur!', 'extra-turn');
+                updateGameInfo();
+                animating = false;
+                return;
+            }
+            
+            // Check if last pit was on opponent's side
+            if (totalStones > 6 && totalStones < 13) {
+                lastRow = player === 1 ? 2 : 1;
+                lastPit = totalStones - 6;
+            }
+            
+            // If last pit has stones, pick them up and continue sowing
+            if (board[lastRow][lastPit] > 0) {
+                showFeedback('Fortsætter med at så!', 'extra-turn');
+                
+                // Pick up stones from last pit and continue sowing
+                const continueStones = board[lastRow][lastPit];
+                board[lastRow][lastPit] = 0;
+                updateDisplay();
+                
+                // Continue sowing from this position
+                setTimeout(() => {
+                    animateContinueMove(lastRow, lastPit, continueStones);
+                }, 500);
+                return;
+            }
+            
+            // Landed in empty pit - turn ends
+            showFeedback('Tur slut', 'capture');
+            
+            // Switch player
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateGameInfo();
+            
+            // Check for game end
+            if (checkGameEnd()) {
+                endGame();
+                return;
+            }
+            
+            // AI move
+            if (gameMode === 'ai' && currentPlayer === 2) {
+                setTimeout(() => makeAIMove(), 1000);
+            } else {
+                animating = false;
+            }
+        }
+
+        function animateContinueMove(player, startPit, stones) {
+            let currentStones = stones;
+            let currentPit = startPit;
+            let currentRow = player;
+            
+            // Animation interval
+            const interval = setInterval(() => {
+                if (currentStones === 0) {
+                    clearInterval(interval);
+                    finishMove(player, startPit);
+                    return;
+                }
+                
+                // Move to next position
+                currentPit++;
+                if (currentPit === 7) {
+                    // Reached store
+                    if (currentRow === player) {
+                        board[currentRow][0]++;
+                        updateDisplay();
+                    }
+                    currentPit = 0;
+                    currentRow = currentRow === 1 ? 2 : 1;
+                } else {
+                    // Regular pit
+                    board[currentRow][currentPit]++;
+                    updateDisplay();
+                }
+                
+                currentStones--;
+            }, 300);
+        }
+
+        function makeAIMove() {
+            showFeedback('Computeren tænker...', 'extra-turn');
+            
+            setTimeout(() => {
+                const bestMove = calculateBestMove();
+                if (bestMove !== -1) {
+                    makeMove(2, bestMove);
+                }
+            }, 1000);
+        }
+
+        function calculateBestMove() {
+            const validPits = [];
+            for (let i = 1; i <= 6; i++) {
+                if (board[2][i] > 0) {
+                    validPits.push(i);
+                }
+            }
+            
+            if (validPits.length === 0) return -1;
+            
+            // Adjust AI behavior based on skill level
+            let bestMove = -1;
+            let bestScore = -1;
+            
+            for (const pit of validPits) {
+                let score = 0;
+                const stones = board[2][pit];
+                
+                // Base scoring (applies to all levels)
+                if ((pit + stones) % 7 === 0) {
+                    score += 100; // Extra turn
+                }
+                
+                const totalStones = pit + stones;
+                let lastPit = totalStones % 7;
+                let lastRow = 2;
+                
+                if (totalStones > 6 && totalStones < 13) {
+                    lastRow = 1;
+                    lastPit = totalStones - 6;
+                }
+                
+                if (lastPit !== 0 && board[lastRow][lastPit] > 0) {
+                    score += board[lastRow][lastPit] * 10; // Chain creation
+                }
+                
+                // Skill level adjustments
+                switch(playerSkillLevel) {
+                    case 1: // Beginner - AI makes some mistakes
+                        // 30% chance to make a random move instead
+                        if (Math.random() < 0.3) {
+                            score = Math.random() * 50;
+                        }
+                        // Don't look ahead too much
+                        score += stones * 1;
+                        break;
+                        
+                    case 2: // Easy - Basic strategy with some randomness
+                        // 20% chance to make a random move
+                        if (Math.random() < 0.2) {
+                            score = Math.random() * 70;
+                        }
+                        // Basic defensive play
+                        const simulatedBoard = simulateMove(2, pit);
+                        const opponentScore = evaluateBoardForPlayer(simulatedBoard, 1);
+                        score -= opponentScore * 3;
+                        score += stones * 2;
+                        break;
+                        
+                    case 3: // Medium - Balanced strategy
+                        // 10% chance to make a random move
+                        if (Math.random() < 0.1) {
+                            score = Math.random() * 90;
+                        }
+                        // Good defensive play
+                        const simulatedBoard2 = simulateMove(2, pit);
+                        const opponentScore2 = evaluateBoardForPlayer(simulatedBoard2, 1);
+                        score -= opponentScore2 * 5;
+                        score += stones * 2;
+                        break;
+                        
+                    case 4: // Hard - Strong strategy
+                        // 5% chance to make a random move
+                        if (Math.random() < 0.05) {
+                            score = Math.random() * 95;
+                        }
+                        // Strong defensive play
+                        const simulatedBoard3 = simulateMove(2, pit);
+                        const opponentScore3 = evaluateBoardForPlayer(simulatedBoard3, 1);
+                        score -= opponentScore3 * 8;
+                        score += stones * 3;
+                        break;
+                        
+                    case 5: // Expert - Optimal play
+                        // Very little randomness
+                        if (Math.random() < 0.02) {
+                            score = Math.random() * 98;
+                        }
+                        // Maximum defensive play
+                        const simulatedBoard4 = simulateMove(2, pit);
+                        const opponentScore4 = evaluateBoardForPlayer(simulatedBoard4, 1);
+                        score -= opponentScore4 * 10;
+                        score += stones * 4;
+                        break;
+                }
+                
+                // Add small randomness to all levels
+                score += Math.random() * 5;
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = pit;
+                }
+            }
+            
+            return bestMove;
+        }
+
+        function simulateMove(player, pitIndex) {
+            // Create a copy of the board for simulation
+            const simBoard = [
+                [...board[0]],
+                [...board[1]]
+            ];
+            
+            let stones = simBoard[player][pitIndex];
+            simBoard[player][pitIndex] = 0;
+            let currentPit = pitIndex;
+            let currentRow = player;
+            
+            while (stones > 0) {
+                currentPit++;
+                if (currentPit === 7) {
+                    if (currentRow === player) {
+                        simBoard[currentRow][0]++;
+                    }
+                    currentPit = 0;
+                    currentRow = currentRow === 1 ? 2 : 1;
+                } else {
+                    simBoard[currentRow][currentPit]++;
+                }
+                stones--;
+            }
+            
+            return simBoard;
+        }
+
+        function evaluateBoardForPlayer(boardState, player) {
+            // Evaluate how good a board position is for a player
+            let score = 0;
+            
+            // Store stones are most valuable
+            score += boardState[player][0] * 10;
+            
+            // Stones in pits are valuable based on position
+            for (let i = 1; i <= 6; i++) {
+                // Pits closer to store are slightly more valuable
+                const positionBonus = Math.abs(i - 4) * 0.5;
+                score += boardState[player][i] * (1 + positionBonus);
+            }
+            
+            // Having stones in pits that can create chains is valuable
+            for (let i = 1; i <= 6; i++) {
+                if (boardState[player][i] > 0) {
+                    // Check if this pit can land in store
+                    if ((i + boardState[player][i]) % 7 === 0) {
+                        score += 20;
+                    }
+                    
+                    // Check if this pit can create chains
+                    const totalStones = i + boardState[player][i];
+                    let lastPit = totalStones % 7;
+                    let lastRow = player;
+                    
+                    if (totalStones > 6 && totalStones < 13) {
+                        lastRow = player === 1 ? 2 : 1;
+                        lastPit = totalStones - 6;
+                    }
+                    
+                    if (lastPit !== 0 && boardState[lastRow][lastPit] > 0) {
+                        score += boardState[lastRow][lastPit] * 5;
+                    }
+                }
+            }
+            
+            return score;
+        }
+
+        function checkGameEnd() {
+            // Check if one player's pits are all empty
+            const player1Empty = board[0].slice(1).every(stones => stones === 0);
+            const player2Empty = board[1].slice(1).every(stones => stones === 0);
+            
+            return player1Empty || player2Empty;
+        }
+
+        function endGame() {
+            gameActive = false;
+            
+            // Collect remaining stones
+            for (let player = 1; player <= 2; player++) {
+                for (let pit = 1; pit <= 6; pit++) {
+                    board[player][0] += board[player][pit];
+                    board[player][pit] = 0;
+                }
+            }
+            
+            updateDisplay();
+            
+            // Evaluate performance and update skill level
+            evaluatePlayerPerformance();
+            
+            // Determine winner
+            const player1Score = board[0][0];
+            const player2Score = board[1][0];
+            
+            let winner, winnerText;
+            if (player1Score > player2Score) {
+                winner = 1;
+                winnerText = gameMode === 'ai' ? 'Du vandt!' : 'Spiller 1 vandt!';
+            } else if (player2Score > player1Score) {
+                winner = 2;
+                winnerText = gameMode === 'ai' ? 'Computeren vandt!' : 'Spiller 2 vandt!';
+            } else {
+                winnerText = 'Uafgjort!';
+            }
+            
+            // Show victory screen
+            document.getElementById('victoryWinner').textContent = winnerText;
+            document.getElementById('victoryScore').textContent = 
+                `Spiller 1: ${player1Score} | ${gameMode === 'ai' ? 'Computer' : 'Spiller 2'}: ${player2Score}`;
+            document.getElementById('victoryOverlay').style.display = 'flex';
+        }
+
+        function showFeedback(message, type) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = `feedback ${type}`;
+            
+            setTimeout(() => {
+                feedback.textContent = '';
+                feedback.className = 'feedback';
+            }, 2000);
+        }
+
+        function restartGame() {
+            document.getElementById('victoryOverlay').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'block';
+            
+            // Reset selections
+            gameMode = null;
+            player1Avatar = null;
+            player2Avatar = null;
+            document.getElementById('startButton').disabled = true;
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelectorAll('.avatar-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            if (gameMode === 'human') {
+                document.getElementById('player2AvatarTitle').style.display = 'none';
+                document.getElementById('player2AvatarGrid').style.display = 'none';
+            }
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            loadPlayerData(); // Load saved skill level and history
+            createPits();
+            initGame();
+        };
+    </script>
+</body>
+</html>

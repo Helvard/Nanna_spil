@@ -1,0 +1,6 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 50 120 L 150 120 L 130 150 L 70 150 Z" fill="none" stroke="black" stroke-width="2"/>
+        <rect x="95" y="60" width="10" height="60" fill="none" stroke="black" stroke-width="2"/>
+        <path d="M 105 70 L 140 90 L 105 90 Z" fill="none" stroke="red" stroke-width="2"/>
+        <text x="100" y="190" text-anchor="middle" font-family="Arial" font-size="12">Båd</text>
+    </svg>

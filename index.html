@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐾 Nanna's Spil - Samling</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: titleFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes titleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            color: white;
+            font-size: 3em;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.3em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .game-card:hover::before {
+            left: 100%;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .game-icon {
+            font-size: 3em;
+            margin-right: 15px;
+        }
+
+        .game-title {
+            font-size: 1.8em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .game-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .game-features {
+            margin-bottom: 20px;
+        }
+
+        .feature {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin: 3px;
+        }
+
+        .play-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+        }
+
+        .play-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .tech-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .html-badge { color: #e34c26; }
+        .python-badge { color: #3572A5; }
+        .arcade-badge { color: #4a90e2; }
+
+        footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 40px;
+            padding: 20px;
+        }
+
+        .coming-soon {
+            opacity: 0.7;
+        }
+
+        .coming-soon .play-button {
+            background: linear-gradient(135deg, #a8a8a8 0%, #666666 100%);
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .game-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐾 Nanna's Spil</h1>
+            <p class="subtitle">Sjove og lærerige spil til børn</p>
+        </header>
+
+        <main class="games-grid">
+            <!-- HTML Games -->
+            <article class="game-card">
+                <span class="tech-badge html-badge">HTML5</span>
+                <div class="game-header">
+                    <span class="game-icon">🎮</span>
+                    <h2 class="game-title">Paw Patrol Vendespil</h2>
+                </div>
+                <p class="game-description">
+                    Klassisk hukommelsesspil med Paw Patrol karakterer. Find alle parrene! 
+                    Optimeret til iPad og tablets med touch-kontroller.
+                </p>
+                <div class="game-features">
+                    <span class="feature">🎯 1-2 spillere</span>
+                    <span class="feature">📱 iPad-optimeret</span>
+                    <span class="feature">🎨 Flotte animationer</span>
+                    <span class="feature">🏆 Score-system</span>
+                </div>
+                <a href="Games/Vendespil/vendespil_ipad.html" class="play-button">🎮 Spil Nu</a>
+            </article>
+
+            <article class="game-card">
+                <span class="tech-badge html-badge">HTML5</span>
+                <div class="game-header">
+                    <span class="game-icon">🎨</span>
+                    <h2 class="game-title">Farvelæg Spil</h2>
+                </div>
+                <p class="game-description">
+                    Vælg mellem Paw Patrol, Disney, dyr og køretøjer. Farvelæg frit eller med tal. 
+                    Gem dine kunstværker i personligt galleri!
+                </p>
+                <div class="game-features">
+                    <span class="feature">🎨 Flere temaer</span>
+                    <span class="feature">🔢 Tal-farvelægning</span>
+                    <span class="feature">🖼️ Galleri</span>
+                    <span class="feature">📱 iPad-optimeret</span>
+                </div>
+                <a href="Games/Farvelæg/farvelæg.html" class="play-button">🎨 Spil Nu</a>
+            </article>
+
+            <article class="game-card">
+                <span class="tech-badge html-badge">HTML5</span>
+                <div class="game-header">
+                    <span class="game-icon">🎯</span>
+                    <h2 class="game-title">Kalaha</h2>
+                </div>
+                <p class="game-description">
+                    Spil det klassiske brætspil mod computeren eller en ven. Vælg din avatar og farve!
+                    Smart AI der tilpasser sig dit niveau.
+                </p>
+                <div class="game-features">
+                    <span class="feature">🤖 AI-modstander</span>
+                    <span class="feature">� 2 spillere</span>
+                    <span class="feature">� Strategisk</span>
+                    <span class="feature">🏆 Turnering</span>
+                </div>
+                <a href="Games/Kalaha/kalaha_new.html" class="play-button">🎯 Spil Nu</a>
+            </article>
+
+            <!-- Python Games -->
+            <article class="game-card">
+                <span class="tech-badge python-badge">Python</span>
+                <div class="game-header">
+                    <span class="game-icon">🔤</span>
+                    <h2 class="game-title">Bogstavjagt</h2>
+                </div>
+                <p class="game-description">
+                    Find alle bogstaverne i dette farverige og animerede spil. 
+                    Moderne Arcade-version med flotte effekter.
+                </p>
+                <div class="game-features">
+                    <span class="feature">🌈 Farverig</span>
+                    <span class="feature">✨ Animationer</span>
+                    <span class="feature">🎯 Udfordrende</span>
+                    <span class="feature">🏆 Point-system</span>
+                </div>
+                <a href="Games/Bogstaver/Bogstavjagt/bogstavjagt_arcade.py" class="play-button">🔤 Spil Nu</a>
+            </article>
+
+            <!-- Coming Soon Games -->
+            <article class="game-card coming-soon">
+                <span class="tech-badge html-badge">HTML5</span>
+                <div class="game-header">
+                    <span class="game-icon">🎯</span>
+                    <div class="game-card" onclick="window.location.href='Games/Farvelæg/farvelæg.html'">
+                <div class="game-image">🎨</div>
+                <h3>Farvelæg Spil</h3>
+                <p>Vælg mellem Paw Patrol, Disney, dyr og køretøjer. Farvelæg frit eller med tal. Gem dine kunstværker!</p>
+                <button class="play-btn">Spil Nu</button>
+            </div>
+                <div class="game-features">
+                    <span class="feature">🤖 AI-modstander</span>
+                    <span class="feature">👥 2 spillere</span>
+                    <span class="feature">🎮 Strategisk</span>
+                    <span class="feature">🏆 Turnering</span>
+                </div>
+                <a href="#" class="play-button">🚧 Kommer Snart</a>
+            </article>
+
+            <article class="game-card coming-soon">
+                <span class="tech-badge python-badge">Python</span>
+                <div class="game-header">
+                    <span class="game-icon">🧮</span>
+                    <h2 class="game-title">Regne Spil</h2>
+                </div>
+                <p class="game-description">
+                    Lær at regne med sjove figurer og farver. 
+                    Tilpasset sværhedsgrad for alle aldre.
+                </p>
+                <div class="game-features">
+                    <span class="feature">🔢 Matematik</span>
+                    <span class="feature">📈 Læringsprogression</span>
+                    <span class="feature">🎨 Visuel</span>
+                    <span class="feature">👆 Interaktiv</span>
+                </div>
+                <a href="#" class="play-button">🚧 Kommer Snart</a>
+            </article>
+
+            <article class="game-card coming-soon">
+                <span class="tech-badge python-badge">Python</span>
+                <div class="game-header">
+                    <span class="game-icon">🏃</span>
+                    <h2 class="game-title">Labyrint</h2>
+                </div>
+                <p class="game-description">
+                    Hjælp Bamsen med at finde pigen gennem labyrinten! 
+                    Spændende eventyr med flere baner.
+                </p>
+                <div class="game-features">
+                    <span class="feature">🗺️ Flere baner</span>
+                    <span class="feature">🎮 Eventyr</span>
+                    <span class="feature">🧩 Puslespil</span>
+                    <span class="feature">🏆 Belønninger</span>
+                </div>
+                <a href="#" class="play-button">🚧 Kommer Snart</a>
+            </article>
+        </main>
+
+        <footer>
+            <p>🐾 Lavet med ❤️ til Nanna | © 2026</p>
+            <p>Kør på din egen server med Docker 🐳</p>
+        </footer>
+    </div>
+</body>
+</html>

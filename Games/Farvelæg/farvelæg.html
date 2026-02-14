@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farvelæg Spil - Nanna's Farvebog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            position: relative;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            width: 280px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+
+        .canvas-container {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .theme-selector {
+            margin-bottom: 25px;
+        }
+
+        .theme-selector h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .theme-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-card.active {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            transform: scale(1.05);
+        }
+
+        .drawing-selector {
+            margin-bottom: 25px;
+        }
+
+        .drawing-selector h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .drawing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .drawing-card {
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drawing-card:hover {
+            border-color: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .drawing-card.active {
+            border-color: #f5576c;
+            background: #fff5f5;
+        }
+
+        .drawing-card img {
+            max-width: 60px;
+            max-height: 40px;
+            margin-bottom: 5px;
+        }
+
+        .drawing-card span {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .mode-selector {
+            margin-bottom: 25px;
+        }
+
+        .mode-selector h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .mode-btn:hover {
+            border-color: #764ba2;
+            color: #764ba2;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #764ba2;
+        }
+
+        .color-palette {
+            margin-bottom: 25px;
+        }
+
+        .color-palette h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e0e0e0;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-btn.active {
+            border-color: #333;
+            transform: scale(1.15);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .color-btn.active::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .tools {
+            margin-bottom: 25px;
+        }
+
+        .tools h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .tool-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .tool-btn {
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #666;
+            text-align: center;
+        }
+
+        .tool-btn:hover {
+            border-color: #764ba2;
+            color: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .tool-btn.danger:hover {
+            border-color: #f5576c;
+            color: #f5576c;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        #coloringCanvas {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: crosshair;
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .canvas-info {
+            margin-top: 15px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-btn.secondary {
+            background: white;
+            color: #764ba2;
+            border: 2px solid #764ba2;
+        }
+
+        .action-btn.secondary:hover {
+            background: #764ba2;
+            color: white;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: none;
+                order: 2;
+            }
+
+            .canvas-container {
+                order: 1;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #764ba2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Gallery Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .modal-header h2 {
+            color: #764ba2;
+            font-size: 1.8em;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #f5576c;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover {
+            border-color: #764ba2;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .gallery-item-info {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .gallery-item-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .gallery-btn {
+            background: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-btn:hover {
+            background: #f5576c;
+            transform: scale(1.05);
+        }
+
+        .gallery-btn.danger {
+            background: #f5576c;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 Farvelæg Spil</h1>
+        <p>Vælg en tegning og farvelæg den!</p>
+    </div>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="theme-selector">
+                <h3>🌈 Tema</h3>
+                <div class="theme-grid" id="themeGrid">
+                    <!-- Themes will be loaded here -->
+                </div>
+            </div>
+
+            <div class="drawing-selector">
+                <h3>📝 Tegninger</h3>
+                <div class="drawing-grid" id="drawingGrid">
+                    <!-- Drawings will be loaded here -->
+                </div>
+            </div>
+
+            <div class="mode-selector">
+                <h3>🎯 Tilstand</h3>
+                <div class="mode-buttons">
+                    <button class="mode-btn active" id="freeModeBtn">Fri Farvelægning</button>
+                    <button class="mode-btn" id="numberModeBtn">Tal Farvelægning</button>
+                </div>
+            </div>
+
+            <div class="color-palette">
+                <h3>🎨 Farver</h3>
+                <div class="color-grid" id="colorGrid">
+                    <!-- Colors will be loaded here -->
+                </div>
+            </div>
+
+            <div class="tools">
+                <h3>🛠️ Værktøjer</h3>
+                <div class="tool-buttons">
+                    <button class="tool-btn" id="undoBtn">↶ Fortryd</button>
+                    <button class="tool-btn" id="redoBtn">↷ Gendan</button>
+                    <button class="tool-btn" id="clearBtn">🗑️ Ryd</button>
+                    <button class="tool-btn" id="galleryBtn">🖼️ Galleri</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="canvas-container">
+            <div class="canvas-wrapper">
+                <canvas id="coloringCanvas" width="600" height="600"></canvas>
+                <div class="canvas-info">
+                    <p id="canvasInfo">Vælg en tegning for at starte</p>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn secondary" id="newDrawingBtn">📝 Ny Tegning</button>
+                <button class="action-btn" id="saveBtn">💾 Gem Billede</button>
+                <button class="action-btn" id="printBtn">🖨️ Print</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div id="galleryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🖼️ Mit Galleri</h2>
+                <button class="close-btn" id="closeGalleryBtn">&times;</button>
+            </div>
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Gallery items will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            currentTheme: null,
+            currentDrawing: null,
+            currentMode: 'free', // 'free' or 'number'
+            currentColor: '#FF6B6B',
+            isDrawing: false,
+            history: [],
+            historyIndex: -1,
+            gallery: [],
+            canvas: null,
+            ctx: null,
+            originalImageData: null,
+            numberModeData: null
+        };
+
+        // Theme and Drawing Data
+        const themes = {
+            paw_patrol: {
+                name: 'Paw Patrol',
+                icon: '🐾',
+                drawings: [
+                    { id: 'chase', name: 'Chase', path: '../../paw_patrol/chase.svg' },
+                    { id: 'marshall', name: 'Marshall', path: '../../paw_patrol/marshall.svg' },
+                    { id: 'skye', name: 'Skye', path: '../../paw_patrol/skye.svg' },
+                    { id: 'rubble', name: 'Rubble', path: '../../paw_patrol/rubble.svg' },
+                    { id: 'rocky', name: 'Rocky', path: '../../paw_patrol/rocky.svg' },
+                    { id: 'zuma', name: 'Zuma', path: '../../paw_patrol/zuma.svg' }
+                ]
+            },
+            disney: {
+                name: 'Disney',
+                icon: '🏰',
+                drawings: [
+                    { id: 'mickey', name: 'Mickey Mouse', path: '../../disney/mickey.svg' },
+                    { id: 'minnie', name: 'Minnie Mouse', path: '../../disney/minnie.svg' },
+                    { id: 'donald', name: 'Donald Duck', path: '../../disney/donald.svg' },
+                    { id: 'goofy', name: 'Goofy', path: '../../disney/goofy.svg' }
+                ]
+            },
+            animals: {
+                name: 'Dyr',
+                icon: '🦁',
+                drawings: [
+                    { id: 'lion', name: 'Løve', path: '../../animals/lion.svg' },
+                    { id: 'elephant', name: 'Elefant', path: '../../animals/elephant.svg' },
+                    { id: 'monkey', name: 'Abe', path: '../../animals/monkey.svg' },
+                    { id: 'giraffe', name: 'Giraf', path: '../../animals/giraffe.svg' },
+                    { id: 'zebra', name: 'Zebra', path: '../../animals/zebra.svg' },
+                    { id: 'penguin', name: 'Pingvin', path: '../../animals/penguin.svg' }
+                ]
+            },
+            vehicles: {
+                name: 'Køretøjer',
+                icon: '🚗',
+                drawings: [
+                    { id: 'car', name: 'Bil', path: '../../vehicles/car.svg' },
+                    { id: 'truck', name: 'Lastbil', path: '../../vehicles/truck.svg' },
+                    { id: 'airplane', name: 'Fly', path: '../../vehicles/airplane.svg' },
+                    { id: 'boat', name: 'Båd', path: '../../vehicles/boat.svg' },
+                    { id: 'train', name: 'Tog', path: '../../vehicles/train.svg' }
+                ]
+            }
+        };
+
+        // Color Palette
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
+            '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F',
+            '#BB8FCE', '#85C1E2', '#F8B739', '#52D681',
+            '#FF6B9D', '#C44569', '#524656', '#2C3E50',
+            '#FFFFFF', '#000000', '#808080', '#A0522D'
+        ];
+
+        // Initialize Game
+        function initGame() {
+            gameState.canvas = document.getElementById('coloringCanvas');
+            gameState.ctx = gameState.canvas.getContext('2d');
+            
+            loadGallery();
+            setupEventListeners();
+            renderThemes();
+            renderColors();
+            
+            // Load saved state
+            const savedState = localStorage.getItem('farvelægState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                gameState.currentTheme = state.currentTheme || null;
+                gameState.currentMode = state.currentMode || 'free';
+                gameState.currentColor = state.currentColor || '#FF6B6B';
+                
+                if (gameState.currentTheme) {
+                    selectTheme(gameState.currentTheme);
+                }
+                
+                // Update UI
+                updateModeButtons();
+                updateColorSelection();
+            }
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Canvas events
+            gameState.canvas.addEventListener('click', handleCanvasClick);
+            gameState.canvas.addEventListener('mousemove', handleCanvasMove);
+            gameState.canvas.addEventListener('mousedown', () => gameState.isDrawing = true);
+            gameState.canvas.addEventListener('mouseup', () => gameState.isDrawing = false);
+            gameState.canvas.addEventListener('mouseleave', () => gameState.isDrawing = false);
+
+            // Mode buttons
+            document.getElementById('freeModeBtn').addEventListener('click', () => setMode('free'));
+            document.getElementById('numberModeBtn').addEventListener('click', () => setMode('number'));
+
+            // Tool buttons
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('redoBtn').addEventListener('click', redo);
+            document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+            document.getElementById('galleryBtn').addEventListener('click', showGallery);
+
+            // Action buttons
+            document.getElementById('newDrawingBtn').addEventListener('click', selectNewDrawing);
+            document.getElementById('saveBtn').addEventListener('click', saveToGallery);
+            document.getElementById('printBtn').addEventListener('click', printDrawing);
+
+            // Gallery modal
+            document.getElementById('closeGalleryBtn').addEventListener('click', hideGallery);
+            document.getElementById('galleryModal').addEventListener('click', (e) => {
+                if (e.target.id === 'galleryModal') hideGallery();
+            });
+
+            // Touch events for mobile
+            gameState.canvas.addEventListener('touchstart', handleTouchStart);
+            gameState.canvas.addEventListener('touchmove', handleTouchMove);
+            gameState.canvas.addEventListener('touchend', handleTouchEnd);
+        }
+
+        // Render Functions
+        function renderThemes() {
+            const themeGrid = document.getElementById('themeGrid');
+            themeGrid.innerHTML = '';
+
+            Object.keys(themes).forEach(themeId => {
+                const theme = themes[themeId];
+                const themeCard = document.createElement('button');
+                themeCard.className = 'theme-card';
+                themeCard.innerHTML = `${theme.icon}<br>${theme.name}`;
+                themeCard.addEventListener('click', () => selectTheme(themeId));
+                
+                if (gameState.currentTheme === themeId) {
+                    themeCard.classList.add('active');
+                }
+                
+                themeGrid.appendChild(themeCard);
+            });
+        }
+
+        function renderDrawings() {
+            const drawingGrid = document.getElementById('drawingGrid');
+            drawingGrid.innerHTML = '';
+
+            if (!gameState.currentTheme) {
+                drawingGrid.innerHTML = '<p style="color: #666; text-align: center;">Vælg et tema først</p>';
+                return;
+            }
+
+            const theme = themes[gameState.currentTheme];
+            theme.drawings.forEach(drawing => {
+                const drawingCard = document.createElement('div');
+                drawingCard.className = 'drawing-card';
+                drawingCard.innerHTML = `
+                    <img src="${drawing.path}" alt="${drawing.name}" onerror="this.style.display='none'">
+                    <span>${drawing.name}</span>
+                `;
+                drawingCard.addEventListener('click', () => selectDrawing(drawing));
+                
+                if (gameState.currentDrawing && gameState.currentDrawing.id === drawing.id) {
+                    drawingCard.classList.add('active');
+                }
+                
+                drawingGrid.appendChild(drawingCard);
+            });
+        }
+
+        function renderColors() {
+            const colorGrid = document.getElementById('colorGrid');
+            colorGrid.innerHTML = '';
+
+            colors.forEach(color => {
+                const colorBtn = document.createElement('button');
+                colorBtn.className = 'color-btn';
+                colorBtn.style.backgroundColor = color;
+                colorBtn.addEventListener('click', () => selectColor(color));
+                
+                if (gameState.currentColor === color) {
+                    colorBtn.classList.add('active');
+                }
+                
+                colorGrid.appendChild(colorBtn);
+            });
+        }
+
+        // Selection Functions
+        function selectTheme(themeId) {
+            gameState.currentTheme = themeId;
+            gameState.currentDrawing = null;
+            
+            renderThemes();
+            renderDrawings();
+            saveState();
+            
+            document.getElementById('canvasInfo').textContent = 'Vælg en tegning';
+        }
+
+        function selectDrawing(drawing) {
+            gameState.currentDrawing = drawing;
+            renderDrawings();
+            loadDrawing(drawing);
+            saveState();
+        }
+
+        function selectColor(color) {
+            gameState.currentColor = color;
+            updateColorSelection();
+            saveState();
+        }
+
+        function setMode(mode) {
+            gameState.currentMode = mode;
+            updateModeButtons();
+            
+            if (gameState.originalImageData) {
+                if (mode === 'number') {
+                    enableNumberMode();
+                } else {
+                    disableNumberMode();
+                }
+            }
+            
+            saveState();
+        }
+
+        // Canvas Functions
+        function loadDrawing(drawing) {
+            const img = new Image();
+            img.onload = function() {
+                // Clear canvas
+                gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+                
+                // Calculate scaling to fit canvas
+                const scale = Math.min(
+                    gameState.canvas.width / img.width,
+                    gameState.canvas.height / img.height
+                );
+                
+                const x = (gameState.canvas.width - img.width * scale) / 2;
+                const y = (gameState.canvas.height - img.height * scale) / 2;
+                
+                // Draw image
+                gameState.ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                
+                // Store original image data
+                gameState.originalImageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
+                
+                // Reset history
+                gameState.history = [];
+                gameState.historyIndex = -1;
+                saveToHistory();
+                
+                // Update info
+                document.getElementById('canvasInfo').textContent = `Farvelæg: ${drawing.name}`;
+                
+                // Enable number mode if selected
+                if (gameState.currentMode === 'number') {
+                    enableNumberMode();
+                }
+                
+                playSound('load');
+            };
+            img.onerror = function() {
+                // Create placeholder if image fails to load
+                createPlaceholderDrawing(drawing);
+            };
+            img.src = drawing.path;
+        }
+
+        function createPlaceholderDrawing(drawing) {
+            // Clear canvas
+            gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+            
+            // Create simple placeholder
+            gameState.ctx.fillStyle = '#f0f0f0';
+            gameState.ctx.fillRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+            
+            gameState.ctx.fillStyle = '#666';
+            gameState.ctx.font = '24px Arial';
+            gameState.ctx.textAlign = 'center';
+            gameState.ctx.fillText(drawing.name, gameState.canvas.width / 2, gameState.canvas.height / 2);
+            
+            // Store as original
+            gameState.originalImageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
+            
+            // Reset history
+            gameState.history = [];
+            gameState.historyIndex = -1;
+            saveToHistory();
+            
+            document.getElementById('canvasInfo').textContent = `Farvelæg: ${drawing.name}`;
+            
+            if (gameState.currentMode === 'number') {
+                enableNumberMode();
+            }
+        }
+
+        function handleCanvasClick(e) {
+            if (!gameState.originalImageData) return;
+            
+            const rect = gameState.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (gameState.currentMode === 'number') {
+                handleNumberModeClick(x, y);
+            } else {
+                handleFreeModeClick(x, y);
+            }
+            
+            playSound('color');
+        }
+
+        function handleFreeModeClick(x, y) {
+            const imageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
+            const targetColor = getPixelColor(imageData, x, y);
+            const fillColor = hexToRgb(gameState.currentColor);
+            
+            if (colorsMatch(targetColor, fillColor)) return;
+            
+            floodFill(imageData, x, y, targetColor, fillColor);
+            gameState.ctx.putImageData(imageData, 0, 0);
+            saveToHistory();
+        }
+
+        function handleNumberModeClick(x, y) {
+            // Find which numbered area was clicked
+            const imageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
+            const pixel = getPixelColor(imageData, x, y);
+            
+            // Check if this pixel is in a numbered area
+            const numberData = gameState.numberModeData;
+            if (!numberData) return;
+            
+            // Find the number for this area
+            let clickedNumber = null;
+            for (let i = 0; i < numberData.areas.length; i++) {
+                if (isPointInArea(x, y, numberData.areas[i])) {
+                    clickedNumber = numberData.areas[i].number;
+                    break;
+                }
+            }
+            
+            if (clickedNumber !== null) {
+                // Fill the entire area with the selected color
+                const fillColor = hexToRgb(gameState.currentColor);
+                floodFill(imageData, x, y, pixel, fillColor);
+                gameState.ctx.putImageData(imageData, 0, 0);
+                saveToHistory();
+            }
+        }
+
+        function handleCanvasMove(e) {
+            if (!gameState.isDrawing || gameState.currentMode !== 'free') return;
+            
+            const rect = gameState.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            handleFreeModeClick(x, y);
+        }
+
+        // Touch event handlers
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            gameState.canvas.dispatchEvent(mouseEvent);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            gameState.canvas.dispatchEvent(mouseEvent);
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            gameState.canvas.dispatchEvent(mouseEvent);
+        }
+
+        // Number Mode Functions
+        function enableNumberMode() {
+            if (!gameState.originalImageData) return;
+            
+            // Generate number mode data
+            gameState.numberModeData = generateNumberModeData();
+            
+            // Draw numbers on the canvas
+            drawNumbers();
+        }
+
+        function disableNumberMode() {
+            if (!gameState.originalImageData) return;
+            
+            // Restore original image without numbers
+            gameState.ctx.putImageData(gameState.originalImageData, 0, 0);
+        }
+
+        function generateNumberModeData() {
+            // This is a simplified version - in a real implementation,
+            // you'd want to analyze the image and identify distinct regions
+            const areas = [];
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
+            
+            // Create sample numbered areas (simplified)
+            for (let i = 0; i < 5; i++) {
+                areas.push({
+                    number: i + 1,
+                    color: colors[i],
+                    x: 100 + (i % 3) * 150,
+                    y: 100 + Math.floor(i / 3) * 150,
+                    width: 80,
+                    height: 80
+                });
+            }
+            
+            return { areas: areas };
+        }
+
+        function drawNumbers() {
+            if (!gameState.numberModeData) return;
+            
+            gameState.ctx.font = 'bold 20px Arial';
+            gameState.ctx.textAlign = 'center';
+            gameState.ctx.textBaseline = 'middle';
+            
+            gameState.numberModeData.areas.forEach(area => {
+                // Draw number background
+                gameState.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                gameState.ctx.fillRect(area.x - 15, area.y - 15, 30, 30);
+                
+                // Draw number
+                gameState.ctx.fillStyle = '#333';
+                gameState.ctx.fillText(area.number.toString(), area.x, area.y);
+            });
+        }
+
+        function isPointInArea(x, y, area) {
+            return x >= area.x - area.width/2 && x <= area.x + area.width/2 &&
+                   y >= area.y - area.height/2 && y <= area.y + area.height/2;
+        }
+
+        // Flood Fill Algorithm
+        function floodFill(imageData, startX, startY, targetColor, fillColor) {
+            const pixels = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            const stack = [[startX, startY]];
+            const visited = new Set();
+            
+            while (stack.length > 0) {
+                const [x, y] = stack.pop();
+                const key = `${x},${y}`;
+                
+                if (visited.has(key)) continue;
+                if (x < 0 || x >= width || y < 0 || y >= height) continue;
+                
+                const currentColor = getPixelColor(imageData, x, y);
+                if (!colorsMatch(currentColor, targetColor)) continue;
+                
+                visited.add(key);
+                setPixelColor(imageData, x, y, fillColor);
+                
+                stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+            }
+        }
+
+        // Color Helper Functions
+        function getPixelColor(imageData, x, y) {
+            const index = (Math.floor(y) * imageData.width + Math.floor(x)) * 4;
+            return {
+                r: imageData.data[index],
+                g: imageData.data[index + 1],
+                b: imageData.data[index + 2],
+                a: imageData.data[index + 3]
+            };
+        }
+
+        function setPixelColor(imageData, x, y, color) {
+            const index = (Math.floor(y) * imageData.width + Math.floor(x)) * 4;
+            imageData.data[index] = color.r;
+            imageData.data[index + 1] = color.g;
+            imageData.data[index + 2] = color.b;
+            imageData.data[index + 3] = 255;
+        }
+
+        function colorsMatch(color1, color2, tolerance = 10) {
+            return Math.abs(color1.r - color2.r) < tolerance &&
+                   Math.abs(color1.g - color2.g) < tolerance &&
+                   Math.abs(color1.b - color2.b) < tolerance;
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        // History Functions
+        function saveToHistory() {
+            // Remove any states after current index
+            gameState.history = gameState.history.slice(0, gameState.historyIndex + 1);
+            
+            // Add current state
+            const currentState = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
+            gameState.history.push(currentState);
+            gameState.historyIndex++;
+            
+            // Limit history size
+            if (gameState.history.length > 50) {
+                gameState.history.shift();
+                gameState.historyIndex--;
+            }
+        }
+
+        function undo() {
+            if (gameState.historyIndex > 0) {
+                gameState.historyIndex--;
+                const state = gameState.history[gameState.historyIndex];
+                gameState.ctx.putImageData(state, 0, 0);
+                playSound('undo');
+            }
+        }
+
+        function redo() {
+            if (gameState.historyIndex < gameState.history.length - 1) {
+                gameState.historyIndex++;
+                const state = gameState.history[gameState.historyIndex];
+                gameState.ctx.putImageData(state, 0, 0);
+                playSound('redo');
+            }
+        }
+
+        function clearCanvas() {
+            if (!gameState.originalImageData) return;
+            
+            if (confirm('Er du sikker på, at du vil rydde tegningen?')) {
+                gameState.ctx.putImageData(gameState.originalImageData, 0, 0);
+                saveToHistory();
+                playSound('clear');
+            }
+        }
+
+        // Gallery Functions
+        function saveToGallery() {
+            if (!gameState.currentDrawing) {
+                alert('Vælg en tegning først!');
+                return;
+            }
+            
+            const canvas = gameState.canvas;
+            const dataURL = canvas.toDataURL('image/png');
+            
+            const galleryItem = {
+                id: Date.now(),
+                theme: gameState.currentTheme,
+                drawing: gameState.currentDrawing,
+                image: dataURL,
+                date: new Date().toISOString(),
+                mode: gameState.currentMode
+            };
+            
+            gameState.gallery.push(galleryItem);
+            saveGallery();
+            
+            showFeedback('Billede gemt i galleriet! 🎨');
+            playSound('save');
+        }
+
+        function loadGallery() {
+            const savedGallery = localStorage.getItem('farvelægGallery');
+            if (savedGallery) {
+                gameState.gallery = JSON.parse(savedGallery);
+            }
+        }
+
+        function saveGallery() {
+            localStorage.setItem('farvelægGallery', JSON.stringify(gameState.gallery));
+        }
+
+        function showGallery() {
+            const modal = document.getElementById('galleryModal');
+            const galleryGrid = document.getElementById('galleryGrid');
+            
+            galleryGrid.innerHTML = '';
+            
+            if (gameState.gallery.length === 0) {
+                galleryGrid.innerHTML = '<p style="color: #666; text-align: center; grid-column: 1/-1;">Intet i galleriet endnu. Farvelæg og gem dine første billeder!</p>';
+            } else {
+                gameState.gallery.forEach(item => {
+                    const galleryItem = document.createElement('div');
+                    galleryItem.className = 'gallery-item';
+                    galleryItem.innerHTML = `
+                        <img src="${item.image}" alt="${item.drawing.name}">
+                        <div class="gallery-item-info">
+                            <strong>${item.drawing.name}</strong><br>
+                            <small>${new Date(item.date).toLocaleDateString('da-DK')}</small>
+                        </div>
+                        <div class="gallery-item-actions">
+                            <button class="gallery-btn" onclick="loadFromGallery('${item.id}')">Indlæs</button>
+                            <button class="gallery-btn danger" onclick="deleteFromGallery('${item.id}')">Slet</button>
+                        </div>
+                    `;
+                    galleryGrid.appendChild(galleryItem);
+                });
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function hideGallery() {
+            document.getElementById('galleryModal').style.display = 'none';
+        }
+
+        function loadFromGallery(id) {
+            const item = gameState.gallery.find(item => item.id == id);
+            if (item) {
+                const img = new Image();
+                img.onload = function() {
+                    gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+                    gameState.ctx.drawImage(img, 0, 0);
+                    saveToHistory();
+                    
+                    gameState.currentTheme = item.theme;
+                    gameState.currentDrawing = item.drawing;
+                    gameState.currentMode = item.mode;
+                    
+                    renderThemes();
+                    renderDrawings();
+                    updateModeButtons();
+                    
+                    hideGallery();
+                    playSound('load');
+                };
+                img.src = item.image;
+            }
+        }
+
+        function deleteFromGallery(id) {
+            if (confirm('Er du sikker på, at du vil slette dette billede?')) {
+                gameState.gallery = gameState.gallery.filter(item => item.id != id);
+                saveGallery();
+                showGallery();
+                playSound('delete');
+            }
+        }
+
+        // Utility Functions
+        function selectNewDrawing() {
+            gameState.currentDrawing = null;
+            gameState.originalImageData = null;
+            gameState.numberModeData = null;
+            
+            gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+            document.getElementById('canvasInfo').textContent = 'Vælg en tegning for at starte';
+            
+            renderDrawings();
+            saveState();
+        }
+
+        function printDrawing() {
+            if (!gameState.currentDrawing) {
+                alert('Vælg en tegning først!');
+                return;
+            }
+            
+            window.print();
+            playSound('print');
+        }
+
+        function updateModeButtons() {
+            document.getElementById('freeModeBtn').classList.toggle('active', gameState.currentMode === 'free');
+            document.getElementById('numberModeBtn').classList.toggle('active', gameState.currentMode === 'number');
+        }
+
+        function updateColorSelection() {
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.style.backgroundColor === gameState.currentColor);
+            });
+        }
+
+        function saveState() {
+            const state = {
+                currentTheme: gameState.currentTheme,
+                currentMode: gameState.currentMode,
+                currentColor: gameState.currentColor
+            };
+            localStorage.setItem('farvelægState', JSON.stringify(state));
+        }
+
+        function showFeedback(message) {
+            document.getElementById('canvasInfo').textContent = message;
+            setTimeout(() => {
+                if (gameState.currentDrawing) {
+                    document.getElementById('canvasInfo').textContent = `Farvelæg: ${gameState.currentDrawing.name}`;
+                } else {
+                    document.getElementById('canvasInfo').textContent = 'Vælg en tegning for at starte';
+                }
+            }, 3000);
+        }
+
+        // Sound Effects (simplified version)
+        function playSound(type) {
+            // In a real implementation, you would play actual sound files
+            // For now, we'll use the Web Audio API to create simple sounds
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'color':
+                    oscillator.frequency.value = 800;
+                    gainNode.gain.value = 0.1;
+                    break;
+                case 'save':
+                    oscillator.frequency.value = 1000;
+                    gainNode.gain.value = 0.2;
+                    break;
+                case 'undo':
+                    oscillator.frequency.value = 600;
+                    gainNode.gain.value = 0.1;
+                    break;
+                case 'redo':
+                    oscillator.frequency.value = 700;
+                    gainNode.gain.value = 0.1;
+                    break;
+                case 'clear':
+                    oscillator.frequency.value = 400;
+                    gainNode.gain.value = 0.1;
+                    break;
+                case 'load':
+                    oscillator.frequency.value = 900;
+                    gainNode.gain.value = 0.1;
+                    break;
+                case 'delete':
+                    oscillator.frequency.value = 300;
+                    gainNode.gain.value = 0.1;
+                    break;
+                case 'print':
+                    oscillator.frequency.value = 1100;
+                    gainNode.gain.value = 0.1;
+                    break;
+                default:
+                    oscillator.frequency.value = 500;
+                    gainNode.gain.value = 0.1;
+            }
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        // Initialize game when page loads
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
