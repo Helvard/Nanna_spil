@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐾 Stav Navne - Paw Patrol</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: url('paw_cursor_mac.png'), auto;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-image: url('paw_patrol/Adventure_Bay_%28S3%29.webp');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ============================================ */
+        /* START SKÆRM */
+        /* ============================================ */
+        .start-screen {
+            text-align: center;
+        }
+
+        .avatar-selection {
+            margin: 30px 0;
+        }
+
+        .avatar-selection h2 {
+            font-size: 1.8em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+
+        .avatar-option {
+            width: 120px;
+            height: 120px;
+            border-radius: 15px;
+            border: 4px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            object-fit: cover;
+        }
+
+        .avatar-option:hover {
+            transform: scale(1.05);
+            border-color: #1e88e5;
+        }
+
+        .avatar-option.selected {
+            border-color: #4caf50;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        button {
+            background: linear-gradient(135deg, #1e88e5 0%, #0d47a1 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            border-radius: 15px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ============================================ */
+        /* SPIL SKÆRM */
+        /* ============================================ */
+        .game-screen {
+            display: none;
+        }
+
+        .avatar-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            border-radius: 15px;
+            border: 3px solid #1e88e5;
+            object-fit: cover;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .instruction {
+            text-align: center;
+            font-size: 1.5em;
+            color: #333;
+            margin: 20px 0;
+            min-height: 40px;
+        }
+
+        .target-name {
+            text-align: center;
+            font-size: 2em;
+            color: #bbb;
+            margin: 20px 0;
+            letter-spacing: 0.1em;
+        }
+
+        .letter-boxes {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .letter-box {
+            width: 80px;
+            height: 80px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            background: #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .letter-box.filled {
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            color: white;
+            animation: fillBox 0.5s ease;
+        }
+
+        @keyframes fillBox {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .letter-buttons {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 15px;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .letter-button {
+            width: 90px;
+            height: 90px;
+            border-radius: 15px;
+            border: 3px solid #333;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .letter-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .letter-button:active {
+            transform: translateY(-2px);
+        }
+
+        .letter-button.used {
+            opacity: 0.3;
+            cursor: default;
+            transform: none !important;
+        }
+
+        /* Farver til bogstav-knapper */
+        .color-1 { background: linear-gradient(135deg, #1e88e5 0%, #0d47a1 100%); }
+        .color-2 { background: linear-gradient(135deg, #ab47bc 0%, #6a1b9a 100%); }
+        .color-3 { background: linear-gradient(135deg, #ff7043 0%, #d84315 100%); }
+        .color-4 { background: linear-gradient(135deg, #26c6da 0%, #00838f 100%); }
+
+        .feedback {
+            text-align: center;
+            font-size: 1.8em;
+            min-height: 60px;
+            margin: 20px 0;
+            font-weight: bold;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .feedback.success {
+            color: #4caf50;
+        }
+
+        .feedback.error {
+            color: #f44336;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            color: #4caf50;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .celebration.show {
+            opacity: 1;
+        }
+
+        .completion-screen {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .completion-screen h2 {
+            font-size: 2.5em;
+            color: #4caf50;
+            margin-bottom: 30px;
+        }
+
+        .completion-screen .spelled-name {
+            font-size: 3em;
+            color: #1e88e5;
+            letter-spacing: 0.2em;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ============================================ -->
+        <!-- START SKÆRM -->
+        <!-- ============================================ -->
+        <div class="start-screen" id="startScreen">
+            <h1>🐾 Stav Navne! 🐾</h1>
+            
+            <div class="avatar-selection">
+                <h2>Vælg din avatar:</h2>
+                <div class="avatar-grid" id="avatarGrid"></div>
+            </div>
+            
+            <button onclick="startGame()" id="startButton" disabled>Start Spil!</button>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SPIL SKÆRM -->
+        <!-- ============================================ -->
+        <div class="game-screen" id="gameScreen">
+            <img id="avatarDisplay" class="avatar-display" src="" alt="Avatar">
+            
+            <h1>🐾 Stav Navne! 🐾</h1>
+            
+            <div class="instruction" id="instruction"></div>
+            
+            <div class="target-name" id="targetName"></div>
+            
+            <div class="letter-boxes" id="letterBoxes"></div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="letter-buttons" id="letterButtons"></div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- COMPLETION SKÆRM -->
+        <!-- ============================================ -->
+        <div class="completion-screen" id="completionScreen">
+            <h2>🎉 Det var flot! 🎉</h2>
+            <div class="spelled-name" id="spelledName"></div>
+            <button onclick="nextName()">Prøv Igen!</button>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- CELEBRATION OVERLAY -->
+        <!-- ============================================ -->
+        <div class="celebration" id="celebration"></div>
+    </div>
+
+    <script>
+        // ============================================
+        // KONSTANTER
+        // ============================================
+        
+        const AVATAR_IMAGES = [
+            'paw_patrol/download.jpeg',
+            'paw_patrol/download (1).jpeg',
+            'paw_patrol/download (2).jpeg',
+            'paw_patrol/download (3).jpeg',
+            'paw_patrol/download (4).jpeg',
+            'paw_patrol/download (5).jpeg',
+            'paw_patrol/images.jpeg',
+            'paw_patrol/images (1).jpeg',
+            'paw_patrol/images (2).jpeg',
+            'paw_patrol/images (3).jpeg',
+            'paw_patrol/images (4).jpeg',
+            'paw_patrol/images (5).jpeg'
+        ];
+
+        const NAMES = [
+            'ERIK', 'URSULA', 'BERTIL', 'OSKAR', 'NANNA',
+            'LARS', 'MATHILDE', 'TILDE', 'WILMA', 'SILJE',
+            'ALFRED', 'PETER', 'MARIE', 'MORFAR', 'MORMOR',
+            'IBEN', 'JONATHAN', 'EVA'
+        ];
+
+        const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ';
+
+        // ============================================
+        // SPIL STATE
+        // ============================================
+        
+        let selectedAvatar = null;
+        let currentName = '';
+        let currentLetterIndex = 0;
+        let usedNames = [];
+        let availableLetters = [];
+
+        // ============================================
+        // LYDFILER
+        // ============================================
+        
+        function playSound(type, letter = '', name = '') {
+            let audioPath = '';
+            
+            switch(type) {
+                case 'intro':
+                    // "Hej Nanna, du skal stave til [navn]"
+                    playSequence([
+                        'Lyd_bogstav_spil/Feedback/Hej Nanna, du skal stave til.wav',
+                        `Lyd_bogstav_spil/Navne/${name}.wav`
+                    ], [300]); // Kort pause før navnet
+                    break;
+                    
+                case 'next_letter':
+                    // "Det første bogstav du skal finde er [bogstav]"
+                    playSequence([
+                        'Lyd_bogstav_spil/Feedback/Det første bogstav du skal finde er.wav',
+                        `Lyd_bogstav_spil/${letter}.wav`
+                    ], [300]); // Kort pause før bogstavet
+                    break;
+                    
+                case 'correct':
+                    // "Flot, Nanna!"
+                    audioPath = 'Lyd_bogstav_spil/Feedback/Flot, Nanna.wav';
+                    new Audio(audioPath).play();
+                    break;
+                    
+                case 'wrong':
+                    // "Ikke helt rigtigt, prøv igen"
+                    audioPath = 'Lyd_bogstav_spil/Feedback/Ikke helt rigtigt, prøv igen.wav';
+                    new Audio(audioPath).play();
+                    break;
+                    
+                case 'completion':
+                    // "Det var flot, du har stavet til [navn]. [bogstaver]"
+                    const letters = name.split('');
+                    const sounds = [
+                        'Lyd_bogstav_spil/Feedback/Det var flot, du har stavet til.wav',
+                        `Lyd_bogstav_spil/Navne/${name}.wav`,
+                        ...letters.map(l => `Lyd_bogstav_spil/${l}.wav`)
+                    ];
+                    // Pauser: kort før navn, længere før bogstaver starter, kort mellem bogstaver
+                    const pauses = [300, 800, ...new Array(letters.length - 1).fill(400)];
+                    playSequence(sounds, pauses);
+                    break;
+                    
+                case 'try_again':
+                    // "Tryk på prøv igen, hvis du vil spille mere"
+                    audioPath = 'Lyd_bogstav_spil/Feedback/Tryk på prøv igen, hvis du vil spille mere.wav';
+                    new Audio(audioPath).play();
+                    break;
+            }
+        }
+
+        function playSequence(soundPaths, pauseLengths = []) {
+            let index = 0;
+            
+            function playNext() {
+                if (index >= soundPaths.length) {
+                    return; // Færdig
+                }
+                
+                const audio = new Audio(soundPaths[index]);
+                
+                audio.onended = () => {
+                    index++;
+                    // Brug specifik pause hvis angivet, ellers default 800ms
+                    const pause = pauseLengths[index - 1] !== undefined ? pauseLengths[index - 1] : 800;
+                    setTimeout(playNext, pause);
+                };
+                
+                audio.onerror = (e) => {
+                    console.error('Audio error:', soundPaths[index], e);
+                    index++;
+                    setTimeout(playNext, 500);
+                };
+                
+                audio.play().catch(err => {
+                    console.error('Play error:', err);
+                    index++;
+                    setTimeout(playNext, 500);
+                });
+            }
+            
+            playNext();
+        }
+
+        // ============================================
+        // AVATAR VALG
+        // ============================================
+        
+        function initAvatarSelection() {
+            const avatarGrid = document.getElementById('avatarGrid');
+            
+            AVATAR_IMAGES.forEach((imgSrc, index) => {
+                const img = document.createElement('img');
+                img.src = imgSrc;
+                img.className = 'avatar-option';
+                img.onclick = () => selectAvatar(imgSrc, img);
+                avatarGrid.appendChild(img);
+            });
+        }
+
+        function selectAvatar(imgSrc, imgElement) {
+            // Fjern tidligere valg
+            document.querySelectorAll('.avatar-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Vælg ny avatar
+            imgElement.classList.add('selected');
+            selectedAvatar = imgSrc;
+            
+            // Aktiver start knap
+            document.getElementById('startButton').disabled = false;
+        }
+
+        // ============================================
+        // SPIL LOGIK
+        // ============================================
+        
+        function startGame() {
+            if (!selectedAvatar) return;
+            
+            // Gem avatar
+            document.getElementById('avatarDisplay').src = selectedAvatar;
+            
+            // Skjul start skærm, vis spil skærm
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            // Start første navn
+            nextName();
+        }
+
+        function nextName() {
+            // Skjul completion skærm hvis den er vist
+            document.getElementById('completionScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            // Vælg et ubrugt navn
+            let availableNames = NAMES.filter(name => !usedNames.includes(name));
+            
+            // Reset hvis alle navne er brugt
+            if (availableNames.length === 0) {
+                usedNames = [];
+                availableNames = [...NAMES];
+            }
+            
+            // Vælg tilfældigt navn
+            currentName = availableNames[Math.floor(Math.random() * availableNames.length)];
+            usedNames.push(currentName);
+            
+            // Reset spil state
+            currentLetterIndex = 0;
+            
+            // Opret bogstav-knapper
+            createLetterButtons();
+            
+            // Opret tomme bokse
+            createLetterBoxes();
+            
+            // Vis target navn (gråt)
+            document.getElementById('targetName').textContent = currentName;
+            
+            // Clear feedback
+            document.getElementById('feedback').textContent = '';
+            
+            // Spil intro lyd + første bogstav i én sekvens
+            setTimeout(() => {
+                // "Hej Nanna, du skal stave til [navn]" + "Det første bogstav du skal finde er [bogstav]"
+                // Pauser: kort inden navn, lang mellem sætninger, kort inden bogstav
+                playSequence([
+                    'Lyd_bogstav_spil/Feedback/Hej Nanna, du skal stave til.wav',
+                    `Lyd_bogstav_spil/Navne/${currentName}.wav`,
+                    'Lyd_bogstav_spil/Feedback/Det første bogstav du skal finde er.wav',
+                    `Lyd_bogstav_spil/${currentName[0]}.wav`
+                ], [300, 1000, 300]); // Pause-længder i ms
+            }, 500);
+        }
+
+        function createLetterBoxes() {
+            const container = document.getElementById('letterBoxes');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < currentName.length; i++) {
+                const box = document.createElement('div');
+                box.className = 'letter-box';
+                box.id = `box-${i}`;
+                container.appendChild(box);
+            }
+        }
+
+        function createLetterButtons() {
+            const container = document.getElementById('letterButtons');
+            container.innerHTML = '';
+            
+            // Bogstaver der er brug for
+            const neededLetters = currentName.split('');
+            
+            // Tilføj ekstra bogstaver for sværhedsgrad
+            const extraLetters = [];
+            for (let letter of ALPHABET) {
+                if (!neededLetters.includes(letter)) {
+                    extraLetters.push(letter);
+                }
+            }
+            
+            // Tag 5-8 tilfældige ekstra bogstaver
+            const numExtra = Math.min(8, extraLetters.length);
+            const shuffledExtra = extraLetters.sort(() => Math.random() - 0.5).slice(0, numExtra);
+            
+            // Kombiner og bland
+            availableLetters = [...neededLetters, ...shuffledExtra].sort(() => Math.random() - 0.5);
+            
+            // Opret knapper
+            const colors = ['color-1', 'color-2', 'color-3', 'color-4'];
+            
+            availableLetters.forEach((letter, index) => {
+                const button = document.createElement('div');
+                button.className = `letter-button ${colors[index % colors.length]}`;
+                button.textContent = letter;
+                button.onclick = () => selectLetter(letter, button);
+                button.dataset.letter = letter;
+                container.appendChild(button);
+            });
+        }
+
+        function selectLetter(letter, buttonElement) {
+            // Ignorer hvis allerede brugt
+            if (buttonElement.classList.contains('used')) return;
+            
+            const expectedLetter = currentName[currentLetterIndex];
+            
+            if (letter === expectedLetter) {
+                // Korrekt!
+                buttonElement.classList.add('used');
+                
+                // Udfyld boks
+                const box = document.getElementById(`box-${currentLetterIndex}`);
+                box.textContent = letter;
+                box.classList.add('filled');
+                
+                currentLetterIndex++;
+                
+                // Spil feedback
+                playSound('correct');
+                
+                // Check om navn er komplet
+                if (currentLetterIndex === currentName.length) {
+                    // Navn komplet!
+                    setTimeout(() => {
+                        showCompletion();
+                    }, 1000);
+                } else {
+                    // Næste bogstav
+                    setTimeout(() => {
+                        playSound('next_letter', currentName[currentLetterIndex]);
+                    }, 1500);
+                }
+            } else {
+                // Forkert!
+                playSound('wrong');
+                
+                // Vis feedback
+                const feedback = document.getElementById('feedback');
+                feedback.textContent = '❌ Prøv det næste bogstav';
+                feedback.className = 'feedback error';
+                
+                setTimeout(() => {
+                    feedback.textContent = '';
+                }, 2000);
+            }
+        }
+
+        function showCompletion() {
+            // Skjul spil skærm
+            document.getElementById('gameScreen').style.display = 'none';
+            
+            // Vis completion skærm
+            const completionScreen = document.getElementById('completionScreen');
+            completionScreen.style.display = 'block';
+            
+            // Vis stavet navn
+            document.getElementById('spelledName').textContent = currentName.split('').join(' ');
+            
+            // Spil completion lyd
+            playSound('completion', '', currentName);
+            
+            // Spil "try again" efter completion
+            setTimeout(() => {
+                playSound('try_again');
+            }, 3000 + currentName.length * 800);
+        }
+
+        // ============================================
+        // INITIALISERING
+        // ============================================
+        
+        initAvatarSelection();
+    </script>
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paw Patrol Vendespil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            /* BAGGRUND: Adventure Bay */
+            background-image: url('paw_patrol/Adventure_Bay.webp');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 1000px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Start skærm */
+        .start-screen {
+            text-align: center;
+        }
+
+        .settings {
+            margin: 30px 0;
+        }
+
+        .setting-group {
+            margin: 20px 0;
+        }
+
+        .setting-group label {
+            display: block;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .setting-group input,
+        .setting-group select {
+            font-size: 1.2em;
+            padding: 10px;
+            border: 2px solid #1e88e5;
+            border-radius: 10px;
+            width: 200px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #1e88e5 0%, #0d47a1 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            border-radius: 15px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* Spil skærm */
+        .game-screen {
+            display: none;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+
+        .player-info {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .current-player {
+            font-weight: bold;
+            color: #1e88e5;
+        }
+
+        .score {
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        .game-board {
+            display: grid;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        .card {
+            width: 130px;
+            height: 130px;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s, opacity 0.3s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-front {
+            /* KORTBAGSIDE: Paw Patrol logo */
+            background-image: url('paw_patrol/images.png');
+            background-color: #1e88e5;
+            background-size: 60%;
+            background-position: center;
+            background-repeat: no-repeat;
+            /* Eller brug et andet billede: background-image: url('paw_patrol/dit-billede.jpg'); */
+        }
+
+        .card-back {
+            background: #1e88e5;
+            transform: rotateY(180deg);
+            /* KORTFORSIDE: Billederne sættes via JavaScript nedenfor */
+        }
+
+        .card-back img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .celebration {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2em;
+            color: #1e88e5;
+            font-weight: bold;
+            min-height: 40px;
+        }
+
+        /* Områder hvor fundne par samles */
+        .player-areas {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        .player-area {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 15px;
+            min-height: 180px;
+            flex: 1;
+        }
+
+        .player-area h3 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .collected-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 10px;
+            justify-items: center;
+        }
+
+        .collected-card {
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1e88e5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .collected-card img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                width: 110px;
+                height: 110px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Start skærm -->
+        <div class="start-screen" id="startScreen">
+            <h1>🐾 Paw Patrol Vendespil 🐾</h1>
+            <div class="settings">
+                <div class="setting-group">
+                    <label for="numPairs">Antal par (5-15):</label>
+                    <input type="number" id="numPairs" min="5" max="15" value="8">
+                </div>
+                <div class="setting-group">
+                    <label for="gameMode">Spillere:</label>
+                    <select id="gameMode">
+                        <option value="solo">Solo</option>
+                        <option value="two">To spillere</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="startGame()">Start Spil!</button>
+        </div>
+
+        <!-- Spil skærm -->
+        <div class="game-screen" id="gameScreen">
+            <h1>🐾 Paw Patrol Vendespil 🐾</h1>
+            <div class="game-info" id="gameInfo"></div>
+            <div class="celebration" id="celebration"></div>
+            <div class="game-board" id="gameBoard"></div>
+            <div class="player-areas" id="playerAreas"></div>
+            <div style="text-align: center;">
+                <button onclick="restartGame()">Nyt Spil</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // PAW PATROL BILLEDER
+        // ============================================
+        
+        const CARD_IMAGES = [
+            'paw_patrol/download.jpeg',
+            'paw_patrol/download (1).jpeg',
+            'paw_patrol/download (2).jpeg',
+            'paw_patrol/download (3).jpeg',
+            'paw_patrol/download (4).jpeg',
+            'paw_patrol/download (5).jpeg',
+            'paw_patrol/images.jpeg',
+            'paw_patrol/images (1).jpeg',
+            'paw_patrol/images (2).jpeg',
+            'paw_patrol/images (3).jpeg',
+            'paw_patrol/images (4).jpeg',
+            'paw_patrol/images (5).jpeg',
+            'paw_patrol/images (6).jpeg',
+            'paw_patrol/images (7).jpeg',
+            'paw_patrol/images (8).jpeg',
+            'paw_patrol/zuma-labrador-retriever-puppy-clip-art-paw-patrol.jpg'
+        ];
+
+        // ============================================
+        // SPIL LOGIK
+        // ============================================
+
+        let numPairs = 8;
+        let gameMode = 'solo';
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let currentPlayer = 1;
+        let scores = { player1: 0, player2: 0 };
+        let canFlip = true;
+
+        function startGame() {
+            numPairs = parseInt(document.getElementById('numPairs').value);
+            gameMode = document.getElementById('gameMode').value;
+            
+            // Valider antal par
+            if (numPairs < 5 || numPairs > 15) {
+                alert('Vælg venligst mellem 5 og 15 par!');
+                return;
+            }
+
+            // Nulstil spillet
+            matchedPairs = 0;
+            currentPlayer = 1;
+            scores = { player1: 0, player2: 0 };
+            flippedCards = [];
+            canFlip = true;
+
+            // Opret kort
+            createCards();
+
+            // Opret spillerområder
+            createPlayerAreas();
+
+            // Skjul start skærm, vis spil skærm
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+
+            updateGameInfo();
+        }
+
+        function createCards() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+
+            // Vælg billeder baseret på antal par
+            const selectedImages = CARD_IMAGES.slice(0, numPairs);
+            
+            // Lav par og bland
+            cards = [...selectedImages, ...selectedImages]
+                .sort(() => Math.random() - 0.5)
+                .map((image, index) => ({
+                    id: index,
+                    image: image,
+                    matched: false
+                }));
+
+            // Beregn grid størrelse
+            const cols = Math.min(6, Math.ceil(Math.sqrt(cards.length)));
+            gameBoard.style.gridTemplateColumns = `repeat(${cols}, 130px)`;
+
+            // Opret kort elementer
+            cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.dataset.index = index;
+                cardElement.onclick = () => flipCard(index);
+
+                // Check om billedet er en fil-sti eller emoji
+                const isImageFile = card.image.includes('.') || card.image.includes('/');
+                
+                cardElement.innerHTML = `
+                    <div class="card-front"></div>
+                    <div class="card-back">
+                        ${isImageFile ? `<img src="${card.image}" alt="Paw Patrol">` : card.image}
+                    </div>
+                `;
+
+                gameBoard.appendChild(cardElement);
+            });
+        }
+
+        function createPlayerAreas() {
+            const playerAreas = document.getElementById('playerAreas');
+            playerAreas.innerHTML = '';
+
+            if (gameMode === 'solo') {
+                playerAreas.innerHTML = `
+                    <div class="player-area">
+                        <h3>🏆 Fundne Par</h3>
+                        <div class="collected-cards" id="collected-solo"></div>
+                    </div>
+                `;
+            } else {
+                playerAreas.innerHTML = `
+                    <div class="player-area">
+                        <h3>🎮 Spiller 1</h3>
+                        <div class="collected-cards" id="collected-player1"></div>
+                    </div>
+                    <div class="player-area">
+                        <h3>🎮 Spiller 2</h3>
+                        <div class="collected-cards" id="collected-player2"></div>
+                    </div>
+                `;
+            }
+        }
+
+        function addCardToPlayerArea(image, player) {
+            const targetId = gameMode === 'solo' ? 'collected-solo' : `collected-player${player}`;
+            const collectedArea = document.getElementById(targetId);
+            
+            const isImageFile = image.includes('.') || image.includes('/');
+            
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'collected-card';
+            cardDiv.innerHTML = isImageFile ? `<img src="${image}" alt="Paw Patrol">` : image;
+            
+            collectedArea.appendChild(cardDiv);
+        }
+
+        function flipCard(index) {
+            if (!canFlip) return;
+            if (cards[index].matched) return;
+            if (flippedCards.some(card => card.index === index)) return;
+            if (flippedCards.length >= 2) return;
+
+            const cardElement = document.querySelector(`[data-index="${index}"]`);
+            cardElement.classList.add('flipped');
+
+            flippedCards.push({ index, image: cards[index].image });
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            canFlip = false;
+            const [card1, card2] = flippedCards;
+
+            if (card1.image === card2.image) {
+                // Match!
+                setTimeout(() => {
+                    cards[card1.index].matched = true;
+                    cards[card2.index].matched = true;
+                    
+                    const cardElement1 = document.querySelector(`[data-index="${card1.index}"]`);
+                    const cardElement2 = document.querySelector(`[data-index="${card2.index}"]`);
+                    
+                    // Fjern kortene fra brættet med animation
+                    cardElement1.style.opacity = '0';
+                    cardElement2.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        cardElement1.style.display = 'none';
+                        cardElement2.style.display = 'none';
+                    }, 300);
+                    
+                    matchedPairs++;
+
+                    // Tilføj kort til spillerens område
+                    if (gameMode === 'two') {
+                        scores[`player${currentPlayer}`]++;
+                        addCardToPlayerArea(card1.image, currentPlayer);
+                    } else {
+                        addCardToPlayerArea(card1.image, 1);
+                    }
+
+                    showCelebration('🎉 Godt klaret! 🎉');
+                    flippedCards = [];
+                    canFlip = true;
+
+                    if (matchedPairs === numPairs) {
+                        setTimeout(endGame, 500);
+                    } else {
+                        updateGameInfo();
+                    }
+                }, 500);
+            } else {
+                // Ikke match
+                setTimeout(() => {
+                    document.querySelector(`[data-index="${card1.index}"]`).classList.remove('flipped');
+                    document.querySelector(`[data-index="${card2.index}"]`).classList.remove('flipped');
+                    
+                    flippedCards = [];
+
+                    if (gameMode === 'two') {
+                        currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    }
+
+                    canFlip = true;
+                    updateGameInfo();
+                }, 1000);
+            }
+        }
+
+        function updateGameInfo() {
+            const gameInfo = document.getElementById('gameInfo');
+            
+            if (gameMode === 'solo') {
+                gameInfo.innerHTML = `
+                    <div class="player-info">Par fundet: <span class="score">${matchedPairs}/${numPairs}</span></div>
+                `;
+            } else {
+                gameInfo.innerHTML = `
+                    <div class="player-info">Spiller 1: <span class="score">${scores.player1}</span></div>
+                    <div class="player-info current-player">Det er Spiller ${currentPlayer}s tur!</div>
+                    <div class="player-info">Spiller 2: <span class="score">${scores.player2}</span></div>
+                `;
+            }
+        }
+
+        function showCelebration(message) {
+            const celebration = document.getElementById('celebration');
+            celebration.textContent = message;
+            setTimeout(() => {
+                celebration.textContent = '';
+            }, 2000);
+        }
+
+        function endGame() {
+            const celebration = document.getElementById('celebration');
+            
+            if (gameMode === 'solo') {
+                celebration.textContent = '🌟 Tillykke! Du fandt alle parrene! 🌟';
+            } else {
+                if (scores.player1 > scores.player2) {
+                    celebration.textContent = '🏆 Spiller 1 vinder! 🏆';
+                } else if (scores.player2 > scores.player1) {
+                    celebration.textContent = '🏆 Spiller 2 vinder! 🏆';
+                } else {
+                    celebration.textContent = '🤝 Uafgjort! 🤝';
+                }
+            }
+        }
+
+        function restartGame() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'block';
+            document.getElementById('celebration').textContent = '';
+        }
+    </script>
+</body>
+</html>

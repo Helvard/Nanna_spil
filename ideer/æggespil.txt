@@ -1,0 +1,15 @@
+Æggespillet
+
+Hver spiller har en 'kurv' med æg, hvor der er plads til 13 æg.
+Til start er der 7 æg i hver spillers kurv.
+
+Der er fem 'tallerkener' på spillepladen, og en stegepande. De fem tallerkner repræsenterer tallene 1-5.
+Stegepanden 6.
+
+Hver spiller slår med en seks siders terning, og hvis den tallerken der svarer til tallet er tom, må man placere et æg fra sin kurv på tallerkenen. Hvis der allerede er et æg, skal man tage dette æg og lægge i sin egen kurv.
+Stegepanden er speciel, i og med at den 'fjerner' ægget fra spillet.
+
+Hver spiller har lov til at slå med terningen så mange gange man har lyst, indtil man bliver nødt til at fjerne et æg fra en tallerken.
+Spilleren må selv beslutte at afslutte sin tur efter at have placeret et æg i stegepanden eller på en tallerken.
+
+Den spiller der først kommer af med alle sine æg har vundet.

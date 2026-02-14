@@ -1,0 +1,1 @@
+Når computeren lander i eget 'hjem' felt kan den ikke finde ud af at vælge hvilken pit den skal tage stenene fra til sin ekstra tur.
