@@ -267,12 +267,30 @@
         }
 
         .game-board {
-            background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+            background-image: url('Kalaha_image.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             border-radius: 20px;
             padding: 30px;
             margin: 20px 0;
             box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.3);
             position: relative;
+        }
+
+        .game-board::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 20px;
+            pointer-events: none;
+        }
+
+        .board-top,
+        .board-bottom {
+            position: relative;
+            z-index: 1;
         }
 
         .board-top {
@@ -310,10 +328,26 @@
         }
 
         .store-stones {
-            font-size: 2em;
-            font-weight: bold;
+            width: 100%;
+            height: 70px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stone-count {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            background: rgba(255, 255, 255, 0.95);
             color: #654321;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-weight: bold;
+            border: 2px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            font-size: 0.9em;
         }
 
         .pits-row {
@@ -349,10 +383,43 @@
         }
 
         .pit-stones {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: white;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stone {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            position: absolute;
+            transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+            left: var(--x, 50%);
+            top: var(--y, 50%);
+            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4));
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .stone.drop {
+            animation: stoneDrop 180ms ease-out;
+        }
+
+        @keyframes stoneDrop {
+            from { transform: translate(-50%, -65%) scale(1.15) rotate(var(--rot, 0deg)); opacity: 0.6; }
+            to { transform: translate(-50%, -50%) scale(1) rotate(var(--rot, 0deg)); opacity: 1; }
+        }
+
+        .hand {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
         }
 
         .pit.highlight {
@@ -553,10 +620,11 @@
             <div class="feedback" id="feedback"></div>
             
             <div class="game-board">
+                <div class="hand" id="hand"></div>
                 <div class="board-top">
                     <div class="store" id="player2Store">
                         <div class="store-label">Spiller 2</div>
-                        <div class="store-stones">0</div>
+                        <div class="store-stones" data-store="2"></div>
                     </div>
                     <div class="pits-row" id="player2Pits"></div>
                 </div>
@@ -565,7 +633,7 @@
                     <div class="pits-row" id="player1Pits"></div>
                     <div class="store" id="player1Store">
                         <div class="store-label">Spiller 1</div>
-                        <div class="store-stones">0</div>
+                        <div class="store-stones" data-store="1"></div>
                     </div>
                 </div>
             </div>
@@ -599,6 +667,8 @@
         let gameHistory = [];
         let moveHistory = [];
         let gameStartTime = 0;
+
+        const STONE_IMAGE_SRC = 'png-transparent-rock-stone-single-rounded-pebble-nature-thumbnail.png';
 
         // Avatar Images
         const AVATAR_IMAGES = [
@@ -819,7 +889,7 @@
             moveHistory = [];
             gameStartTime = Date.now();
             setupBoard();
-            updateDisplay();
+            syncBoardToDom(true);
             updateGameInfo();
             
             // Show skill level for AI mode
@@ -831,15 +901,85 @@
         }
 
         function updateDisplay() {
-            // Update stores
-            document.querySelector('#player1Store .store-stones').textContent = board[0][0];
-            document.querySelector('#player2Store .store-stones').textContent = board[1][0];
-            
-            // Update pits
-            for (let i = 1; i <= 6; i++) {
-                document.getElementById(`pit1-${i}`).textContent = board[0][i];
-                document.getElementById(`pit2-${i}`).textContent = board[1][i];
+            syncBoardToDom(false);
+        }
+
+        function getPitElement(player, pitIndex) {
+            return document.getElementById(`pit${player}-${pitIndex}`);
+        }
+
+        function getStoreContainer(player) {
+            return document.querySelector(`[data-store="${player}"]`);
+        }
+
+        function createStoneElement() {
+            const img = document.createElement('img');
+            img.src = STONE_IMAGE_SRC;
+            img.className = 'stone';
+            return img;
+        }
+
+        function pickUpStonesFromPit(player, pitIndex) {
+            const hand = document.getElementById('hand');
+            const pitEl = getPitElement(player, pitIndex);
+            const container = pitEl ? pitEl.querySelector('.pit-stones') : null;
+            const picked = [];
+            if (!container) return picked;
+            container.querySelectorAll('img.stone').forEach(st => {
+                picked.push(st);
+                hand.appendChild(st);
+            });
+            setStoneCountBadge(container, 0);
+            return picked;
+        }
+
+        function randomStonePosition(el, countInContainer) {
+            const radius = countInContainer <= 2 ? 12 : countInContainer <= 6 ? 18 : 22;
+            const angle = Math.random() * Math.PI * 2;
+            const r = Math.random() * radius;
+            const x = 50 + Math.cos(angle) * r;
+            const y = 50 + Math.sin(angle) * r;
+            const rot = (Math.random() * 50 - 25).toFixed(1);
+            el.style.setProperty('--x', `${x}%`);
+            el.style.setProperty('--y', `${y}%`);
+            el.style.setProperty('--rot', `${rot}deg`);
+        }
+
+        function setStoneCountBadge(container, count) {
+            let badge = container.querySelector('.stone-count');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'stone-count';
+                container.appendChild(badge);
             }
+            badge.textContent = count;
+        }
+
+        function renderContainerStones(container, count, maxRendered) {
+            container.querySelectorAll('img.stone').forEach(n => n.remove());
+            const toRender = Math.min(count, maxRendered);
+            for (let i = 0; i < toRender; i++) {
+                const stone = createStoneElement();
+                randomStonePosition(stone, toRender);
+                container.appendChild(stone);
+            }
+            setStoneCountBadge(container, count);
+        }
+
+        function syncBoardToDom(forceFullRender) {
+            // Pits
+            for (let i = 1; i <= 6; i++) {
+                const pit1 = getPitElement(1, i);
+                const pit2 = getPitElement(2, i);
+                if (pit1) renderContainerStones(pit1.querySelector('.pit-stones'), board[0][i], 12);
+                if (pit2) renderContainerStones(pit2.querySelector('.pit-stones'), board[1][i], 12);
+            }
+
+            // Stores (render fewer stones so it stays fast)
+            const store1 = getStoreContainer(1);
+            const store2 = getStoreContainer(2);
+            if (store1) renderContainerStones(store1, board[0][0], 16);
+            if (store2) renderContainerStones(store2, board[1][0], 16);
         }
 
         function updateGameInfo() {
@@ -878,7 +1018,9 @@
                 const pit1 = document.createElement('div');
                 pit1.className = 'pit';
                 pit1.id = `pit1-${i}`;
-                pit1.textContent = board[0][i];
+                pit1.dataset.player = '1';
+                pit1.dataset.pitIndex = String(i);
+                pit1.innerHTML = `<div class="pit-stones"></div>`;
                 pit1.onclick = () => makeMove(1, i);
                 player1Pits.appendChild(pit1);
             }
@@ -887,22 +1029,26 @@
                 const pit2 = document.createElement('div');
                 pit2.className = 'pit';
                 pit2.id = `pit2-${i}`;
-                pit2.textContent = board[1][i];
+                pit2.dataset.player = '2';
+                pit2.dataset.pitIndex = String(i);
+                pit2.innerHTML = `<div class="pit-stones"></div>`;
                 pit2.onclick = () => makeMove(2, i);
                 player2Pits.appendChild(pit2);
             }
+
+            syncBoardToDom(true);
         }
 
         function makeMove(player, pitIndex) {
             if (!gameActive || animating || player !== currentPlayer) return;
-            if (board[player][pitIndex] === 0) {
+            if (board[player - 1][pitIndex] === 0) {
                 showFeedback('Denne brønd er tom!', 'error');
                 return;
             }
             
             // Get stones from the pit
-            const stones = board[player][pitIndex];
-            board[player][pitIndex] = 0;
+            const stones = board[player - 1][pitIndex];
+            board[player - 1][pitIndex] = 0;
             
             // Animate the move
             animateMove(player, pitIndex, stones);
@@ -913,12 +1059,18 @@
             let currentStones = stones;
             let currentPit = startPit;
             let currentRow = player;
+
+            const picked = pickUpStonesFromPit(player, startPit);
+
+            let lastLandingRow = player;
+            let lastLandingPit = startPit;
+            let lastLandingWasStore = false;
             
             // Animation interval
             const interval = setInterval(() => {
                 if (currentStones === 0) {
                     clearInterval(interval);
-                    finishMove(player, startPit);
+                    finishMove(player, lastLandingRow, lastLandingPit, lastLandingWasStore);
                     return;
                 }
                 
@@ -927,31 +1079,52 @@
                 if (currentPit === 7) {
                     // Reached store
                     if (currentRow === player) {
-                        board[currentRow][0]++;
-                        updateDisplay();
+                        board[currentRow - 1][0]++;
+                        const store = getStoreContainer(player);
+                        if (store) {
+                            const stoneEl = picked.pop() || createStoneElement();
+                            randomStonePosition(stoneEl, Math.min(board[player - 1][0], 16));
+                            stoneEl.classList.remove('drop');
+                            void stoneEl.offsetWidth;
+                            stoneEl.classList.add('drop');
+                            store.appendChild(stoneEl);
+                            setStoneCountBadge(store, board[player - 1][0]);
+                        }
+                        lastLandingRow = currentRow;
+                        lastLandingPit = 0;
+                        lastLandingWasStore = true;
                     }
                     currentPit = 0;
                     currentRow = currentRow === 1 ? 2 : 1;
                 } else {
                     // Regular pit
-                    board[currentRow][currentPit]++;
-                    updateDisplay();
+                    board[currentRow - 1][currentPit]++;
+                    const destPit = getPitElement(currentRow, currentPit);
+                    const destContainer = destPit ? destPit.querySelector('.pit-stones') : null;
+                    if (destContainer) {
+                        const stoneEl = picked.pop() || createStoneElement();
+                        randomStonePosition(stoneEl, Math.min(board[currentRow - 1][currentPit], 12));
+                        stoneEl.classList.remove('drop');
+                        void stoneEl.offsetWidth;
+                        stoneEl.classList.add('drop');
+                        destContainer.appendChild(stoneEl);
+                        setStoneCountBadge(destContainer, board[currentRow - 1][currentPit]);
+                    }
+
+                    lastLandingRow = currentRow;
+                    lastLandingPit = currentPit;
+                    lastLandingWasStore = false;
                 }
                 
                 currentStones--;
-            }, 300);
+            }, 220);
         }
 
-        function finishMove(player, startPit) {
+        function finishMove(player, lastRow, lastPit, lastWasStore) {
             // With simplified rules: continue sowing until you hit an empty pit
             // The last pit determines what happens next
-            
-            // Find the last pit where a stone was placed
-            const totalStones = board[player][startPit] + startPit;
-            let lastPit = totalStones % 7;
-            let lastRow = player;
-            
-            if (lastPit === 0) {
+
+            if (lastWasStore) {
                 // Landed in store - extra turn!
                 showFeedback('Ekstra tur!', 'extra-turn');
                 updateGameInfo();
@@ -959,24 +1132,19 @@
                 return;
             }
             
-            // Check if last pit was on opponent's side
-            if (totalStones > 6 && totalStones < 13) {
-                lastRow = player === 1 ? 2 : 1;
-                lastPit = totalStones - 6;
-            }
-            
             // If last pit has stones, pick them up and continue sowing
-            if (board[lastRow][lastPit] > 0) {
+            if (board[lastRow - 1][lastPit] > 0) {
                 showFeedback('Fortsætter med at så!', 'extra-turn');
                 
                 // Pick up stones from last pit and continue sowing
-                const continueStones = board[lastRow][lastPit];
-                board[lastRow][lastPit] = 0;
+                const continueStones = board[lastRow - 1][lastPit];
+                board[lastRow - 1][lastPit] = 0;
+                const picked = pickUpStonesFromPit(lastRow, lastPit);
                 updateDisplay();
                 
                 // Continue sowing from this position
                 setTimeout(() => {
-                    animateContinueMove(lastRow, lastPit, continueStones);
+                    animateContinueMove(lastRow, lastPit, continueStones, picked);
                 }, 500);
                 return;
             }
@@ -1002,16 +1170,20 @@
             }
         }
 
-        function animateContinueMove(player, startPit, stones) {
+        function animateContinueMove(player, startPit, stones, picked) {
             let currentStones = stones;
             let currentPit = startPit;
             let currentRow = player;
+
+            let lastLandingRow = player;
+            let lastLandingPit = startPit;
+            let lastLandingWasStore = false;
             
             // Animation interval
             const interval = setInterval(() => {
                 if (currentStones === 0) {
                     clearInterval(interval);
-                    finishMove(player, startPit);
+                    finishMove(player, lastLandingRow, lastLandingPit, lastLandingWasStore);
                     return;
                 }
                 
@@ -1020,19 +1192,46 @@
                 if (currentPit === 7) {
                     // Reached store
                     if (currentRow === player) {
-                        board[currentRow][0]++;
-                        updateDisplay();
+                        board[currentRow - 1][0]++;
+                        const store = getStoreContainer(player);
+                        if (store) {
+                            const stoneEl = (picked && picked.pop()) || createStoneElement();
+                            randomStonePosition(stoneEl, Math.min(board[player - 1][0], 16));
+                            stoneEl.classList.remove('drop');
+                            void stoneEl.offsetWidth;
+                            stoneEl.classList.add('drop');
+                            store.appendChild(stoneEl);
+                            setStoneCountBadge(store, board[player - 1][0]);
+                        }
+
+                        lastLandingRow = currentRow;
+                        lastLandingPit = 0;
+                        lastLandingWasStore = true;
                     }
                     currentPit = 0;
                     currentRow = currentRow === 1 ? 2 : 1;
                 } else {
                     // Regular pit
-                    board[currentRow][currentPit]++;
-                    updateDisplay();
+                    board[currentRow - 1][currentPit]++;
+                    const destPit = getPitElement(currentRow, currentPit);
+                    const destContainer = destPit ? destPit.querySelector('.pit-stones') : null;
+                    if (destContainer) {
+                        const stoneEl = (picked && picked.pop()) || createStoneElement();
+                        randomStonePosition(stoneEl, Math.min(board[currentRow - 1][currentPit], 12));
+                        stoneEl.classList.remove('drop');
+                        void stoneEl.offsetWidth;
+                        stoneEl.classList.add('drop');
+                        destContainer.appendChild(stoneEl);
+                        setStoneCountBadge(destContainer, board[currentRow - 1][currentPit]);
+                    }
+
+                    lastLandingRow = currentRow;
+                    lastLandingPit = currentPit;
+                    lastLandingWasStore = false;
                 }
                 
                 currentStones--;
-            }, 300);
+            }, 220);
         }
 
         function makeAIMove() {
@@ -1049,7 +1248,7 @@
         function calculateBestMove() {
             const validPits = [];
             for (let i = 1; i <= 6; i++) {
-                if (board[2][i] > 0) {
+                if (board[1][i] > 0) {
                     validPits.push(i);
                 }
             }
@@ -1062,7 +1261,7 @@
             
             for (const pit of validPits) {
                 let score = 0;
-                const stones = board[2][pit];
+                const stones = board[1][pit];
                 
                 // Base scoring (applies to all levels)
                 if ((pit + stones) % 7 === 0) {
@@ -1078,8 +1277,8 @@
                     lastPit = totalStones - 6;
                 }
                 
-                if (lastPit !== 0 && board[lastRow][lastPit] > 0) {
-                    score += board[lastRow][lastPit] * 10; // Chain creation
+                if (lastPit !== 0 && board[lastRow - 1][lastPit] > 0) {
+                    score += board[lastRow - 1][lastPit] * 10; // Chain creation
                 }
                 
                 // Skill level adjustments
@@ -1161,8 +1360,8 @@
                 [...board[1]]
             ];
             
-            let stones = simBoard[player][pitIndex];
-            simBoard[player][pitIndex] = 0;
+            let stones = simBoard[player - 1][pitIndex];
+            simBoard[player - 1][pitIndex] = 0;
             let currentPit = pitIndex;
             let currentRow = player;
             
@@ -1170,12 +1369,12 @@
                 currentPit++;
                 if (currentPit === 7) {
                     if (currentRow === player) {
-                        simBoard[currentRow][0]++;
+                        simBoard[currentRow - 1][0]++;
                     }
                     currentPit = 0;
                     currentRow = currentRow === 1 ? 2 : 1;
                 } else {
-                    simBoard[currentRow][currentPit]++;
+                    simBoard[currentRow - 1][currentPit]++;
                 }
                 stones--;
             }
@@ -1238,8 +1437,8 @@
             // Collect remaining stones
             for (let player = 1; player <= 2; player++) {
                 for (let pit = 1; pit <= 6; pit++) {
-                    board[player][0] += board[player][pit];
-                    board[player][pit] = 0;
+                    board[player - 1][0] += board[player - 1][pit];
+                    board[player - 1][pit] = 0;
                 }
             }
             
