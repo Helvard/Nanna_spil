@@ -303,7 +303,7 @@
             position: relative;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
         }
 
@@ -311,9 +311,19 @@
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             cursor: crosshair;
+            touch-action: none;
             display: block;
             max-width: 100%;
             height: auto;
+        }
+
+        #lineArtCanvas {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            pointer-events: none;
         }
 
         .canvas-info {
@@ -579,6 +589,7 @@
         <main class="canvas-container">
             <div class="canvas-wrapper">
                 <canvas id="coloringCanvas" width="600" height="600"></canvas>
+                <canvas id="lineArtCanvas" width="600" height="600"></canvas>
                 <div class="canvas-info">
                     <p id="canvasInfo">Vælg en tegning for at starte</p>
                 </div>
@@ -616,11 +627,16 @@
             history: [],
             historyIndex: -1,
             gallery: [],
-            canvas: null,
-            ctx: null,
+            canvas: null, // paint canvas
+            ctx: null,    // paint ctx
+            lineCanvas: null,
+            lineCtx: null,
             originalImageData: null,
             numberModeData: null,
-            drawingBounds: null
+            drawingBounds: null,
+            boundaryMask: null,
+            boundaryMaskDilated: null,
+            pendingPaintDataUrl: null
         };
 
         // Theme and Drawing Data
@@ -685,6 +701,9 @@
         function initGame() {
             gameState.canvas = document.getElementById('coloringCanvas');
             gameState.ctx = gameState.canvas.getContext('2d', { willReadFrequently: true });
+
+            gameState.lineCanvas = document.getElementById('lineArtCanvas');
+            gameState.lineCtx = gameState.lineCanvas.getContext('2d', { willReadFrequently: true });
             
             loadGallery();
             setupEventListeners();
@@ -711,12 +730,12 @@
 
         // Setup Event Listeners
         function setupEventListeners() {
-            // Canvas events
-            gameState.canvas.addEventListener('click', handleCanvasClick);
-            gameState.canvas.addEventListener('mousemove', handleCanvasMove);
-            gameState.canvas.addEventListener('mousedown', () => gameState.isDrawing = true);
-            gameState.canvas.addEventListener('mouseup', () => gameState.isDrawing = false);
-            gameState.canvas.addEventListener('mouseleave', () => gameState.isDrawing = false);
+            // Pointer events (covers mouse + touch + pen)
+            gameState.canvas.addEventListener('pointerdown', handlePointerDown);
+            gameState.canvas.addEventListener('pointermove', handlePointerMove);
+            gameState.canvas.addEventListener('pointerup', handlePointerUp);
+            gameState.canvas.addEventListener('pointercancel', handlePointerUp);
+            gameState.canvas.addEventListener('pointerleave', handlePointerUp);
 
             // Mode buttons
             document.getElementById('freeModeBtn').addEventListener('click', () => setMode('free'));
@@ -739,10 +758,7 @@
                 if (e.target.id === 'galleryModal') hideGallery();
             });
 
-            // Touch events for mobile
-            gameState.canvas.addEventListener('touchstart', handleTouchStart);
-            gameState.canvas.addEventListener('touchmove', handleTouchMove);
-            gameState.canvas.addEventListener('touchend', handleTouchEnd);
+            // Touch handlers removed in favor of Pointer Events
         }
 
         // Render Functions
@@ -864,20 +880,21 @@
             img.crossOrigin = 'anonymous';
             let objectUrlToRevoke = null;
             img.onload = function() {
-                // Clear canvas
+                // Clear layers
                 gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+                gameState.lineCtx.clearRect(0, 0, gameState.lineCanvas.width, gameState.lineCanvas.height);
 
-                // Ensure a solid background so transparent SVG pixels don't flood-fill across the whole canvas
-                gameState.ctx.fillStyle = '#FFFFFF';
-                gameState.ctx.fillRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+                // Keep paint layer transparent; draw white background under everything using the line layer
+                gameState.lineCtx.fillStyle = '#FFFFFF';
+                gameState.lineCtx.fillRect(0, 0, gameState.lineCanvas.width, gameState.lineCanvas.height);
                 
                 // Calculate scaling to fit canvas
-                const scale = Math.min(gameState.canvas.width / img.width, gameState.canvas.height / img.height) * 0.8;
-                const x = (gameState.canvas.width - img.width * scale) / 2;
-                const y = (gameState.canvas.height - img.height * scale) / 2;
+                const scale = Math.min(gameState.lineCanvas.width / img.width, gameState.lineCanvas.height / img.height) * 0.8;
+                const x = (gameState.lineCanvas.width - img.width * scale) / 2;
+                const y = (gameState.lineCanvas.height - img.height * scale) / 2;
                 
                 // Draw image
-                gameState.ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                gameState.lineCtx.drawImage(img, x, y, img.width * scale, img.height * scale);
 
                 gameState.drawingBounds = {
                     x,
@@ -888,7 +905,7 @@
                 
                 // Store original image data
                 try {
-                    gameState.originalImageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
+                    gameState.originalImageData = gameState.lineCtx.getImageData(0, 0, gameState.lineCanvas.width, gameState.lineCanvas.height);
                 } catch (err) {
                     gameState.originalImageData = null;
                     alert('Tegningen kunne ikke indlæses korrekt (browser sikkerhed). Prøv at åbne spillet via en webserver (ikke som en lokal fil).');
@@ -903,7 +920,23 @@
                 // Reset history
                 gameState.history = [];
                 gameState.historyIndex = -1;
-                saveToHistory();
+
+                // Build boundary masks for fast enclosed-region fill
+                buildBoundaryMasks();
+
+                // If we are loading from gallery, restore paint overlay
+                if (gameState.pendingPaintDataUrl) {
+                    const paintImg = new Image();
+                    paintImg.onload = function() {
+                        gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+                        gameState.ctx.drawImage(paintImg, 0, 0);
+                        saveToHistory();
+                    };
+                    paintImg.src = gameState.pendingPaintDataUrl;
+                    gameState.pendingPaintDataUrl = null;
+                } else {
+                    saveToHistory();
+                }
                 
                 // Update info
                 document.getElementById('canvasInfo').textContent = `Farvelæg: ${drawing.name}`;
@@ -937,20 +970,26 @@
         }
 
         function createPlaceholderDrawing(drawing) {
-            // Clear canvas
+            // Clear layers
             gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+            if (gameState.lineCtx) {
+                gameState.lineCtx.clearRect(0, 0, gameState.lineCanvas.width, gameState.lineCanvas.height);
+            }
             
             // Create simple placeholder
-            gameState.ctx.fillStyle = '#FFFFFF';
-            gameState.ctx.fillRect(0, 0, gameState.canvas.width, gameState.canvas.height);
-            
-            gameState.ctx.fillStyle = '#666';
-            gameState.ctx.font = '24px Arial';
-            gameState.ctx.textAlign = 'center';
-            gameState.ctx.fillText(drawing.name, gameState.canvas.width / 2, gameState.canvas.height / 2);
+            if (gameState.lineCtx) {
+                gameState.lineCtx.fillStyle = '#FFFFFF';
+                gameState.lineCtx.fillRect(0, 0, gameState.lineCanvas.width, gameState.lineCanvas.height);
+                gameState.lineCtx.fillStyle = '#666';
+                gameState.lineCtx.font = '24px Arial';
+                gameState.lineCtx.textAlign = 'center';
+                gameState.lineCtx.fillText(drawing.name, gameState.lineCanvas.width / 2, gameState.lineCanvas.height / 2);
+            }
             
             // Store as original
-            gameState.originalImageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
+            gameState.originalImageData = gameState.lineCtx ? gameState.lineCtx.getImageData(0, 0, gameState.lineCanvas.width, gameState.lineCanvas.height) : null;
+
+            buildBoundaryMasks();
             
             // Reset history
             gameState.history = [];
@@ -996,7 +1035,7 @@
             // Don't fill if user taps on the line art itself
             if (isBoundaryPixel(x, y)) return;
             
-            floodFillEnclosed(imageData, x, y, fillColor);
+            floodFillEnclosedFast(imageData, x, y, fillColor);
             gameState.ctx.putImageData(imageData, 0, 0);
             saveToHistory();
         }
@@ -1047,31 +1086,72 @@
             handleFreeModeClick(x, y);
         }
 
-        // Touch event handlers
-        function handleTouchStart(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent('mousedown', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            gameState.canvas.dispatchEvent(mouseEvent);
+        // Pointer input
+        let pointerDown = false;
+        let pointerStartX = 0;
+        let pointerStartY = 0;
+        let pointerMoved = false;
+        let lastPointerX = 0;
+        let lastPointerY = 0;
+
+        function eventToCanvasXY(e) {
+            const rect = gameState.canvas.getBoundingClientRect();
+            const scaleX = gameState.canvas.width / rect.width;
+            const scaleY = gameState.canvas.height / rect.height;
+            const x = Math.floor((e.clientX - rect.left) * scaleX);
+            const y = Math.floor((e.clientY - rect.top) * scaleY);
+            return { x, y };
         }
 
-        function handleTouchMove(e) {
+        function handlePointerDown(e) {
+            if (!gameState.originalImageData) return;
+            if (e.button !== undefined && e.button !== 0) return;
             e.preventDefault();
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent('mousemove', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            gameState.canvas.dispatchEvent(mouseEvent);
+            gameState.canvas.setPointerCapture(e.pointerId);
+
+            const { x, y } = eventToCanvasXY(e);
+            pointerDown = true;
+            pointerStartX = x;
+            pointerStartY = y;
+            lastPointerX = x;
+            lastPointerY = y;
+            pointerMoved = false;
         }
 
-        function handleTouchEnd(e) {
+        function handlePointerMove(e) {
+            if (!pointerDown) return;
+            if (gameState.currentMode !== 'free') return;
             e.preventDefault();
-            const mouseEvent = new MouseEvent('mouseup', {});
-            gameState.canvas.dispatchEvent(mouseEvent);
+
+            const { x, y } = eventToCanvasXY(e);
+            const dx = x - pointerStartX;
+            const dy = y - pointerStartY;
+            if (!pointerMoved && Math.hypot(dx, dy) > 4) {
+                pointerMoved = true;
+            }
+
+            // Optional brush while dragging
+            if (pointerMoved) {
+                paintBrushStroke(lastPointerX, lastPointerY, x, y);
+                lastPointerX = x;
+                lastPointerY = y;
+            }
+        }
+
+        function handlePointerUp(e) {
+            if (!pointerDown) return;
+            e.preventDefault();
+            pointerDown = false;
+
+            const { x, y } = eventToCanvasXY(e);
+
+            // Tap = enclosed fill
+            if (!pointerMoved) {
+                handleFreeModeClick(x, y);
+                playSound('color');
+            } else {
+                saveToHistory();
+            }
         }
 
         // Number Mode Functions
@@ -1162,34 +1242,143 @@
             }
         }
 
-        function isBoundaryPixel(x, y) {
-            if (!gameState.originalImageData) return false;
-            const p = getPixelColor(gameState.originalImageData, x, y);
-            // Treat dark, non-transparent pixels as "walls" (line art)
-            return p.a > 25 && p.r < 90 && p.g < 90 && p.b < 90;
+        function buildBoundaryMasks() {
+            if (!gameState.originalImageData) {
+                gameState.boundaryMask = null;
+                gameState.boundaryMaskDilated = null;
+                return;
+            }
+
+            const w = gameState.originalImageData.width;
+            const h = gameState.originalImageData.height;
+            const src = gameState.originalImageData.data;
+
+            const mask = new Uint8Array(w * h);
+
+            // Only compute inside drawing bounds, but keep full-size arrays for fast indexing
+            const b = gameState.drawingBounds;
+            const minX = b ? Math.max(0, Math.floor(b.x)) : 0;
+            const minY = b ? Math.max(0, Math.floor(b.y)) : 0;
+            const maxX = b ? Math.min(w - 1, Math.ceil(b.x + b.width)) : (w - 1);
+            const maxY = b ? Math.min(h - 1, Math.ceil(b.y + b.height)) : (h - 1);
+
+            for (let y = minY; y <= maxY; y++) {
+                let idx = y * w + minX;
+                let p = (y * w + minX) * 4;
+                for (let x = minX; x <= maxX; x++) {
+                    const r = src[p];
+                    const g = src[p + 1];
+                    const bch = src[p + 2];
+                    const a = src[p + 3];
+
+                    // Treat any sufficiently opaque, non-white pixel as boundary (covers black + colored strokes)
+                    // This works well for coloring-book style drawings.
+                    const isOpaque = a > 40;
+                    const nearWhite = r > 235 && g > 235 && bch > 235;
+                    if (isOpaque && !nearWhite) mask[idx] = 1;
+
+                    idx++;
+                    p += 4;
+                }
+            }
+
+            // Dilate boundary by 1px to prevent leaks through anti-alias gaps
+            const dilated = new Uint8Array(w * h);
+            for (let y = minY; y <= maxY; y++) {
+                for (let x = minX; x <= maxX; x++) {
+                    const i = y * w + x;
+                    if (mask[i]) {
+                        dilated[i] = 1;
+                        if (x > 0) dilated[i - 1] = 1;
+                        if (x < w - 1) dilated[i + 1] = 1;
+                        if (y > 0) dilated[i - w] = 1;
+                        if (y < h - 1) dilated[i + w] = 1;
+                    }
+                }
+            }
+
+            gameState.boundaryMask = mask;
+            gameState.boundaryMaskDilated = dilated;
         }
 
-        // Fill a region enclosed by the line art (boundary pixels), regardless of current fill colors
-        function floodFillEnclosed(imageData, startX, startY, fillColor) {
-            const width = imageData.width;
-            const height = imageData.height;
+        function isBoundaryPixel(x, y) {
+            const w = gameState.canvas.width;
+            const h = gameState.canvas.height;
+            if (!gameState.boundaryMaskDilated) return false;
+            if (x < 0 || x >= w || y < 0 || y >= h) return true;
+            return gameState.boundaryMaskDilated[y * w + x] === 1;
+        }
 
-            const stack = [[startX, startY]];
-            const visited = new Set();
+        function inDrawingBounds(x, y) {
+            const b = gameState.drawingBounds;
+            if (!b) return true;
+            return x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height;
+        }
 
-            while (stack.length > 0) {
-                const [x, y] = stack.pop();
-                const key = `${x},${y}`;
+        function floodFillEnclosedFast(imageData, startX, startY, fillColor) {
+            const w = imageData.width;
+            const h = imageData.height;
 
-                if (visited.has(key)) continue;
-                if (x < 0 || x >= width || y < 0 || y >= height) continue;
-                if (isBoundaryPixel(x, y)) continue;
+            if (!inDrawingBounds(startX, startY)) return;
+            if (isBoundaryPixel(startX, startY)) return;
 
-                visited.add(key);
+            const visited = new Uint8Array(w * h);
+
+            // Use simple stack of ints for speed
+            const stackX = [];
+            const stackY = [];
+            stackX.push(startX);
+            stackY.push(startY);
+
+            while (stackX.length) {
+                const x = stackX.pop();
+                const y = stackY.pop();
+                const i = y * w + x;
+                if (visited[i]) continue;
+                visited[i] = 1;
+
+                if (!inDrawingBounds(x, y)) continue;
+                if (gameState.boundaryMaskDilated && gameState.boundaryMaskDilated[i]) continue;
+
                 setPixelColor(imageData, x, y, fillColor);
 
-                stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+                if (x > 0) { stackX.push(x - 1); stackY.push(y); }
+                if (x < w - 1) { stackX.push(x + 1); stackY.push(y); }
+                if (y > 0) { stackX.push(x); stackY.push(y - 1); }
+                if (y < h - 1) { stackX.push(x); stackY.push(y + 1); }
             }
+        }
+
+        function paintBrushStroke(x0, y0, x1, y1) {
+            // Simple round brush that respects drawing bounds and avoids painting over the line art
+            const brushRadius = 10;
+            const col = hexToRgb(gameState.currentColor);
+            if (!col) return;
+
+            const dx = x1 - x0;
+            const dy = y1 - y0;
+            const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 3));
+
+            const imageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
+            for (let s = 0; s <= steps; s++) {
+                const t = s / steps;
+                const cx = Math.round(x0 + dx * t);
+                const cy = Math.round(y0 + dy * t);
+                if (!inDrawingBounds(cx, cy)) continue;
+
+                for (let oy = -brushRadius; oy <= brushRadius; oy++) {
+                    for (let ox = -brushRadius; ox <= brushRadius; ox++) {
+                        if (ox * ox + oy * oy > brushRadius * brushRadius) continue;
+                        const px = cx + ox;
+                        const py = cy + oy;
+                        if (px < 0 || px >= gameState.canvas.width || py < 0 || py >= gameState.canvas.height) continue;
+                        if (!inDrawingBounds(px, py)) continue;
+                        if (isBoundaryPixel(px, py)) continue;
+                        setPixelColor(imageData, px, py, col);
+                    }
+                }
+            }
+            gameState.ctx.putImageData(imageData, 0, 0);
         }
 
         // Color Helper Functions
@@ -1268,7 +1457,7 @@
             if (!gameState.originalImageData) return;
             
             if (confirm('Er du sikker på, at du vil rydde tegningen?')) {
-                gameState.ctx.putImageData(gameState.originalImageData, 0, 0);
+                gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
                 saveToHistory();
                 playSound('clear');
             }
@@ -1280,15 +1469,25 @@
                 alert('Vælg en tegning først!');
                 return;
             }
-            
-            const canvas = gameState.canvas;
-            const dataURL = canvas.toDataURL('image/png');
+
+            // Save paint layer separately (so we can reload it on top of the line art)
+            const paintDataURL = gameState.canvas.toDataURL('image/png');
+
+            // Create a composite thumbnail for the gallery
+            const composite = document.createElement('canvas');
+            composite.width = gameState.canvas.width;
+            composite.height = gameState.canvas.height;
+            const cctx = composite.getContext('2d');
+            cctx.drawImage(gameState.lineCanvas, 0, 0);
+            cctx.drawImage(gameState.canvas, 0, 0);
+            const thumbDataURL = composite.toDataURL('image/png');
             
             const galleryItem = {
                 id: Date.now(),
                 theme: gameState.currentTheme,
                 drawing: gameState.currentDrawing,
-                image: dataURL,
+                image: thumbDataURL,
+                paint: paintDataURL,
                 date: new Date().toISOString(),
                 mode: gameState.currentMode
             };
@@ -1348,24 +1547,20 @@
         function loadFromGallery(id) {
             const item = gameState.gallery.find(item => item.id == id);
             if (item) {
-                const img = new Image();
-                img.onload = function() {
-                    gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
-                    gameState.ctx.drawImage(img, 0, 0);
-                    saveToHistory();
-                    
-                    gameState.currentTheme = item.theme;
-                    gameState.currentDrawing = item.drawing;
-                    gameState.currentMode = item.mode;
-                    
-                    renderThemes();
-                    renderDrawings();
-                    updateModeButtons();
-                    
-                    hideGallery();
-                    playSound('load');
-                };
-                img.src = item.image;
+                gameState.currentTheme = item.theme;
+                gameState.currentDrawing = item.drawing;
+                gameState.currentMode = item.mode;
+
+                // Paint layer will be applied after the line art loads
+                gameState.pendingPaintDataUrl = item.paint || null;
+
+                renderThemes();
+                renderDrawings();
+                updateModeButtons();
+
+                hideGallery();
+                loadDrawing(item.drawing);
+                playSound('load');
             }
         }
 
@@ -1383,8 +1578,14 @@
             gameState.currentDrawing = null;
             gameState.originalImageData = null;
             gameState.numberModeData = null;
+            gameState.boundaryMask = null;
+            gameState.boundaryMaskDilated = null;
+            gameState.pendingPaintDataUrl = null;
             
             gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+            if (gameState.lineCtx) {
+                gameState.lineCtx.clearRect(0, 0, gameState.lineCanvas.width, gameState.lineCanvas.height);
+            }
             document.getElementById('canvasInfo').textContent = 'Vælg en tegning for at starte';
             
             renderDrawings();
