@@ -267,7 +267,7 @@
         }
 
         .game-board {
-            background-image: url('Kalaha_image.jpg');
+            background-image: url('kalaha_background_new.jpg');
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
@@ -278,7 +278,7 @@
             position: relative;
             width: 100%;
             max-width: 1024px;
-            aspect-ratio: 1024 / 683;
+            aspect-ratio: 1024 / 682;
         }
 
         .game-board::before {
@@ -382,7 +382,6 @@
             left: var(--x, 50%);
             top: var(--y, 50%);
             filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4));
-            mix-blend-mode: multiply;
             user-select: none;
             pointer-events: none;
         }
@@ -647,7 +646,7 @@
         let moveHistory = [];
         let gameStartTime = 0;
 
-        const STONE_IMAGE_SRC = 'png-transparent-rock-stone-single-rounded-pebble-nature-thumbnail.png';
+        const STONE_IMAGE_SRC = 'round_rock.png';
 
         // Avatar Images
         const AVATAR_IMAGES = [
@@ -991,11 +990,11 @@
 
             overlay.querySelectorAll('.pit').forEach(p => p.remove());
 
-            // These coordinates are % positions tuned for Kalaha_image.jpg (1024x683).
+            // These coordinates are % positions tuned for kalaha_background_new.jpg.
             // If anything looks slightly off, we can adjust these numbers.
-            const x = [32, 41, 50, 59, 68, 77];
-            const yTop = 39;
-            const yBottom = 61;
+            const x = [33, 42, 51, 60, 69, 78];
+            const yTop = 39.5;
+            const yBottom = 61.0;
 
             // Player 2 pits (top row): left->right indexes 1..6
             for (let i = 1; i <= 6; i++) {
