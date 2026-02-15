@@ -383,7 +383,8 @@
 
         .pit {
             position: absolute;
-            width: 7.6%;
+            width: 70px;
+            height: 70px;
             aspect-ratio: 1 / 1;
             transform: translate(-50%, -50%);
             border-radius: 50%;
@@ -391,12 +392,16 @@
             transition: all 0.3s ease;
             border: 0;
             background: transparent;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
-        .pit:hover:not(.disabled) {
-            transform: scale(1.1);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-            background: rgba(255, 255, 255, 0.06);
+        @media (hover: hover) and (pointer: fine) {
+            .pit:hover:not(.disabled) {
+                transform: translate(-50%, -50%) scale(1.1);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+                background: rgba(255, 255, 255, 0.06);
+            }
         }
 
         .pit.disabled {
@@ -1164,6 +1169,10 @@
                 pit.style.top = `${TOP[i - 1].y}%`;
                 pit.innerHTML = `<div class="pit-stones"></div>`;
                 pit.onclick = () => makeMove(2, i);
+                pit.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    makeMove(2, i);
+                }, { passive: false });
                 overlay.appendChild(pit);
             }
 
@@ -1179,6 +1188,10 @@
                 pit.style.top = `${BOTTOM[pos].y}%`;
                 pit.innerHTML = `<div class="pit-stones"></div>`;
                 pit.onclick = () => makeMove(1, pitIndex);
+                pit.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    makeMove(1, pitIndex);
+                }, { passive: false });
                 overlay.appendChild(pit);
             }
 
