@@ -312,6 +312,8 @@
             border-radius: 10px;
             cursor: crosshair;
             touch-action: none;
+            position: relative;
+            z-index: 1;
             display: block;
             max-width: 100%;
             height: auto;
@@ -324,6 +326,9 @@
             border: 2px solid transparent;
             border-radius: 10px;
             pointer-events: none;
+            z-index: 2;
+            max-width: 100%;
+            height: auto;
         }
 
         .canvas-info {
