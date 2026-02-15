@@ -520,13 +520,13 @@
             <h1>🐾 Paw Patrol Kalaha 🐾</h1>
             
             <div class="game-modes">
-                <div class="mode-card" onclick="selectMode('ai', this)">
+                <div class="mode-card" onclick="selectMode('ai', this)" ontouchstart="selectMode('ai', this); return false;">
                     <div class="mode-icon">🤖</div>
                     <div class="mode-title">vs Computer</div>
                     <div class="mode-description">Spil mod en smart computermodstander</div>
                 </div>
                 
-                <div class="mode-card" onclick="selectMode('human', this)">
+                <div class="mode-card" onclick="selectMode('human', this)" ontouchstart="selectMode('human', this); return false;">
                     <div class="mode-icon">👥</div>
                     <div class="mode-title">2 Spillere</div>
                     <div class="mode-description">Spil mod en ven på samme enhed</div>
