@@ -883,10 +883,6 @@
                 // Clear layers
                 gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
                 gameState.lineCtx.clearRect(0, 0, gameState.lineCanvas.width, gameState.lineCanvas.height);
-
-                // Keep paint layer transparent; draw white background under everything using the line layer
-                gameState.lineCtx.fillStyle = '#FFFFFF';
-                gameState.lineCtx.fillRect(0, 0, gameState.lineCanvas.width, gameState.lineCanvas.height);
                 
                 // Calculate scaling to fit canvas
                 const scale = Math.min(gameState.lineCanvas.width / img.width, gameState.lineCanvas.height / img.height) * 0.8;
@@ -978,8 +974,6 @@
             
             // Create simple placeholder
             if (gameState.lineCtx) {
-                gameState.lineCtx.fillStyle = '#FFFFFF';
-                gameState.lineCtx.fillRect(0, 0, gameState.lineCanvas.width, gameState.lineCanvas.height);
                 gameState.lineCtx.fillStyle = '#666';
                 gameState.lineCtx.font = '24px Arial';
                 gameState.lineCtx.textAlign = 'center';
@@ -1478,6 +1472,8 @@
             composite.width = gameState.canvas.width;
             composite.height = gameState.canvas.height;
             const cctx = composite.getContext('2d');
+            cctx.fillStyle = '#FFFFFF';
+            cctx.fillRect(0, 0, composite.width, composite.height);
             cctx.drawImage(gameState.lineCanvas, 0, 0);
             cctx.drawImage(gameState.canvas, 0, 0);
             const thumbDataURL = composite.toDataURL('image/png');
