@@ -619,7 +619,8 @@
             canvas: null,
             ctx: null,
             originalImageData: null,
-            numberModeData: null
+            numberModeData: null,
+            drawingBounds: null
         };
 
         // Theme and Drawing Data
@@ -857,16 +858,19 @@
                 gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
                 
                 // Calculate scaling to fit canvas
-                const scale = Math.min(
-                    gameState.canvas.width / img.width,
-                    gameState.canvas.height / img.height
-                );
-                
+                const scale = Math.min(gameState.canvas.width / img.width, gameState.canvas.height / img.height) * 0.8;
                 const x = (gameState.canvas.width - img.width * scale) / 2;
                 const y = (gameState.canvas.height - img.height * scale) / 2;
                 
                 // Draw image
                 gameState.ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+                gameState.drawingBounds = {
+                    x,
+                    y,
+                    width: img.width * scale,
+                    height: img.height * scale
+                };
                 
                 // Store original image data
                 gameState.originalImageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
@@ -929,6 +933,13 @@
             const scaleY = gameState.canvas.height / rect.height;
             const x = Math.floor((e.clientX - rect.left) * scaleX);
             const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+            if (gameState.drawingBounds) {
+                const b = gameState.drawingBounds;
+                if (x < b.x || x >= b.x + b.width || y < b.y || y >= b.y + b.height) {
+                    return;
+                }
+            }
             
             if (gameState.currentMode === 'number') {
                 handleNumberModeClick(x, y);
@@ -986,6 +997,13 @@
             const scaleY = gameState.canvas.height / rect.height;
             const x = Math.floor((e.clientX - rect.left) * scaleX);
             const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+            if (gameState.drawingBounds) {
+                const b = gameState.drawingBounds;
+                if (x < b.x || x >= b.x + b.width || y < b.y || y >= b.y + b.height) {
+                    return;
+                }
+            }
             
             handleFreeModeClick(x, y);
         }
