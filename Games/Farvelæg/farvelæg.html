@@ -684,7 +684,7 @@
         // Initialize Game
         function initGame() {
             gameState.canvas = document.getElementById('coloringCanvas');
-            gameState.ctx = gameState.canvas.getContext('2d');
+            gameState.ctx = gameState.canvas.getContext('2d', { willReadFrequently: true });
             
             loadGallery();
             setupEventListeners();
@@ -852,10 +852,24 @@
 
         // Canvas Functions
         function loadDrawing(drawing) {
+            // When opened as a local file (file://), browsers block loading/fetching assets in a way
+            // that allows canvas readback (getImageData). Require running via http(s).
+            if (window.location.protocol === 'file:') {
+                alert('Farvelæg kræver at siden åbnes via en webserver (http/https) for at kunne farvelægge (browser sikkerhed).');
+                createPlaceholderDrawing(drawing);
+                return;
+            }
+
             const img = new Image();
+            img.crossOrigin = 'anonymous';
+            let objectUrlToRevoke = null;
             img.onload = function() {
                 // Clear canvas
                 gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+
+                // Ensure a solid background so transparent SVG pixels don't flood-fill across the whole canvas
+                gameState.ctx.fillStyle = '#FFFFFF';
+                gameState.ctx.fillRect(0, 0, gameState.canvas.width, gameState.canvas.height);
                 
                 // Calculate scaling to fit canvas
                 const scale = Math.min(gameState.canvas.width / img.width, gameState.canvas.height / img.height) * 0.8;
@@ -873,7 +887,18 @@
                 };
                 
                 // Store original image data
-                gameState.originalImageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
+                try {
+                    gameState.originalImageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
+                } catch (err) {
+                    gameState.originalImageData = null;
+                    alert('Tegningen kunne ikke indlæses korrekt (browser sikkerhed). Prøv at åbne spillet via en webserver (ikke som en lokal fil).');
+                    return;
+                } finally {
+                    if (objectUrlToRevoke) {
+                        URL.revokeObjectURL(objectUrlToRevoke);
+                        objectUrlToRevoke = null;
+                    }
+                }
                 
                 // Reset history
                 gameState.history = [];
@@ -894,7 +919,21 @@
                 // Create placeholder if image fails to load
                 createPlaceholderDrawing(drawing);
             };
-            img.src = drawing.path;
+
+            // Load SVG in a way that avoids tainting the canvas (important when running from file:// or strict origins)
+            const absUrl = new URL(drawing.path, window.location.href).toString();
+            fetch(absUrl)
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to load image');
+                    return res.blob();
+                })
+                .then(blob => {
+                    objectUrlToRevoke = URL.createObjectURL(blob);
+                    img.src = objectUrlToRevoke;
+                })
+                .catch(() => {
+                    img.src = absUrl;
+                });
         }
 
         function createPlaceholderDrawing(drawing) {
@@ -902,7 +941,7 @@
             gameState.ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
             
             // Create simple placeholder
-            gameState.ctx.fillStyle = '#f0f0f0';
+            gameState.ctx.fillStyle = '#FFFFFF';
             gameState.ctx.fillRect(0, 0, gameState.canvas.width, gameState.canvas.height);
             
             gameState.ctx.fillStyle = '#666';
@@ -952,12 +991,12 @@
 
         function handleFreeModeClick(x, y) {
             const imageData = gameState.ctx.getImageData(0, 0, gameState.canvas.width, gameState.canvas.height);
-            const targetColor = getPixelColor(imageData, x, y);
             const fillColor = hexToRgb(gameState.currentColor);
+
+            // Don't fill if user taps on the line art itself
+            if (isBoundaryPixel(x, y)) return;
             
-            if (colorsMatch(targetColor, fillColor)) return;
-            
-            floodFill(imageData, x, y, targetColor, fillColor);
+            floodFillEnclosed(imageData, x, y, fillColor);
             gameState.ctx.putImageData(imageData, 0, 0);
             saveToHistory();
         }
@@ -1123,6 +1162,36 @@
             }
         }
 
+        function isBoundaryPixel(x, y) {
+            if (!gameState.originalImageData) return false;
+            const p = getPixelColor(gameState.originalImageData, x, y);
+            // Treat dark, non-transparent pixels as "walls" (line art)
+            return p.a > 25 && p.r < 90 && p.g < 90 && p.b < 90;
+        }
+
+        // Fill a region enclosed by the line art (boundary pixels), regardless of current fill colors
+        function floodFillEnclosed(imageData, startX, startY, fillColor) {
+            const width = imageData.width;
+            const height = imageData.height;
+
+            const stack = [[startX, startY]];
+            const visited = new Set();
+
+            while (stack.length > 0) {
+                const [x, y] = stack.pop();
+                const key = `${x},${y}`;
+
+                if (visited.has(key)) continue;
+                if (x < 0 || x >= width || y < 0 || y >= height) continue;
+                if (isBoundaryPixel(x, y)) continue;
+
+                visited.add(key);
+                setPixelColor(imageData, x, y, fillColor);
+
+                stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+            }
+        }
+
         // Color Helper Functions
         function getPixelColor(imageData, x, y) {
             const index = (Math.floor(y) * imageData.width + Math.floor(x)) * 4;
@@ -1142,10 +1211,13 @@
             imageData.data[index + 3] = 255;
         }
 
-        function colorsMatch(color1, color2, tolerance = 10) {
+        function colorsMatch(color1, color2, tolerance = 5) {
+            const a1 = color1.a ?? 255;
+            const a2 = color2.a ?? 255;
             return Math.abs(color1.r - color2.r) < tolerance &&
                    Math.abs(color1.g - color2.g) < tolerance &&
-                   Math.abs(color1.b - color2.b) < tolerance;
+                   Math.abs(color1.b - color2.b) < tolerance &&
+                   Math.abs(a1 - a2) < 20;
         }
 
         function hexToRgb(hex) {
