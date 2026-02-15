@@ -340,6 +340,22 @@
             font-size: 0.9em;
         }
 
+        .count-badge {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            color: #654321;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-weight: bold;
+            border: 2px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            font-size: 0.9em;
+            pointer-events: none;
+            z-index: 5;
+            user-select: none;
+        }
+
         .pit {
             position: absolute;
             width: 7.6%;
@@ -385,21 +401,7 @@
             pointer-events: none;
         }
 
-        .store-stones[data-store="1"] .stone-count {
-            top: 50%;
-            bottom: auto;
-            left: auto;
-            right: -12px;
-            transform: translate(50%, -50%);
-        }
-
-        .store-stones[data-store="2"] .stone-count {
-            top: 50%;
-            bottom: auto;
-            right: auto;
-            left: -12px;
-            transform: translate(-50%, -50%);
-        }
+        
 
         .stone.drop {
             animation: stoneDrop 180ms ease-out;
@@ -619,15 +621,32 @@
             <div class="game-board">
                 <div class="hand" id="hand"></div>
                 <div class="board-overlay" id="boardOverlay">
-                    <div class="store" id="player2Store" style="left: 18%; top: 50%;">
+                    <div class="store" id="player2Store" style="left: 16.568%; top: 46.75%;">
                         <div class="store-label">Spiller 2</div>
                         <div class="store-stones" data-store="2"></div>
                     </div>
 
-                    <div class="store" id="player1Store" style="left: 82%; top: 50%;">
+                    <div class="store" id="player1Store" style="left: 82.267%; top: 46.064%;">
                         <div class="store-label">Spiller 1</div>
                         <div class="store-stones" data-store="1"></div>
                     </div>
+
+                    <div class="count-badge" id="badge-storeL" style="left: 5.713%; top: 45.377%;">0</div>
+                    <div class="count-badge" id="badge-storeR" style="left: 93.351%; top: 46.064%;">0</div>
+
+                    <div class="count-badge" id="badge-top1" style="left: 28.794%; top: 25.648%;">0</div>
+                    <div class="count-badge" id="badge-top2" style="left: 37.363%; top: 25.476%;">0</div>
+                    <div class="count-badge" id="badge-top3" style="left: 45.247%; top: 25.305%;">0</div>
+                    <div class="count-badge" id="badge-top4" style="left: 53.702%; top: 25.133%;">0</div>
+                    <div class="count-badge" id="badge-top5" style="left: 62.043%; top: 24.962%;">0</div>
+                    <div class="count-badge" id="badge-top6" style="left: 70.156%; top: 24.962%;">0</div>
+
+                    <div class="count-badge" id="badge-bottom1" style="left: 27.879%; top: 65.107%;">0</div>
+                    <div class="count-badge" id="badge-bottom2" style="left: 36.678%; top: 65.107%;">0</div>
+                    <div class="count-badge" id="badge-bottom3" style="left: 45.133%; top: 65.45%;">0</div>
+                    <div class="count-badge" id="badge-bottom4" style="left: 53.474%; top: 65.278%;">0</div>
+                    <div class="count-badge" id="badge-bottom5" style="left: 62.043%; top: 65.278%;">0</div>
+                    <div class="count-badge" id="badge-bottom6" style="left: 70.156%; top: 65.45%;">0</div>
                 </div>
             </div>
 
@@ -662,8 +681,8 @@
         let gameStartTime = 0;
 
         const STONE_IMAGE_SRC = 'round_rock.png';
-        const STONE_OFFSET_X_PX = -20;
-        const STONE_OFFSET_Y_PX = -12;
+        const STONE_OFFSET_X_PX = 0;
+        const STONE_OFFSET_Y_PX = 0;
 
         // Avatar Images
         const AVATAR_IMAGES = [
@@ -946,13 +965,30 @@
         }
 
         function setStoneCountBadge(container, count) {
-            let badge = container.querySelector('.stone-count');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.className = 'stone-count';
-                container.appendChild(badge);
+            // Deprecated: counts are now shown using fixed-position badges on the board.
+        }
+
+        function setCountBadgeById(id, count) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = String(count);
+        }
+
+        function setPitCountBadge(player, pitIndex, count) {
+            // Player 2 pits are the top row, player 1 pits are the bottom row
+            if (player === 2) {
+                setCountBadgeById(`badge-top${pitIndex}`, count);
+            } else {
+                // bottom badges are labeled bottom1..bottom6 left->right;
+                // but player 1 pitIndex is reversed (6..1 left->right)
+                const pos = 7 - pitIndex;
+                setCountBadgeById(`badge-bottom${pos}`, count);
             }
-            badge.textContent = count;
+        }
+
+        function setStoreCountBadges() {
+            // Left store is player2, right store is player1
+            setCountBadgeById('badge-storeL', board[1][0]);
+            setCountBadgeById('badge-storeR', board[0][0]);
         }
 
         function renderContainerStones(container, count, maxRendered) {
@@ -963,7 +999,6 @@
                 randomStonePosition(stone, toRender);
                 container.appendChild(stone);
             }
-            setStoneCountBadge(container, count);
         }
 
         function syncBoardToDom(forceFullRender) {
@@ -971,8 +1006,14 @@
             for (let i = 1; i <= 6; i++) {
                 const pit1 = getPitElement(1, i);
                 const pit2 = getPitElement(2, i);
-                if (pit1) renderContainerStones(pit1.querySelector('.pit-stones'), board[0][i], 12);
-                if (pit2) renderContainerStones(pit2.querySelector('.pit-stones'), board[1][i], 12);
+                if (pit1) {
+                    renderContainerStones(pit1.querySelector('.pit-stones'), board[0][i], 12);
+                    setPitCountBadge(1, i, board[0][i]);
+                }
+                if (pit2) {
+                    renderContainerStones(pit2.querySelector('.pit-stones'), board[1][i], 12);
+                    setPitCountBadge(2, i, board[1][i]);
+                }
             }
 
             // Stores (render fewer stones so it stays fast)
@@ -980,6 +1021,8 @@
             const store2 = getStoreContainer(2);
             if (store1) renderContainerStones(store1, board[0][0], 16);
             if (store2) renderContainerStones(store2, board[1][0], 16);
+
+            setStoreCountBadges();
         }
 
         function updateGameInfo() {
@@ -1012,21 +1055,33 @@
 
             overlay.querySelectorAll('.pit').forEach(p => p.remove());
 
-            // These coordinates are % positions tuned for kalaha_background_new.jpg.
-            // If anything looks slightly off, we can adjust these numbers.
-            const x = [31.3, 39.9, 48.4, 56.8, 65.1, 73.3];
-            const yTop = 36.2;
-            const yBottom = 56.2;
+            // These coordinates come from Games/Kalaha/alignment_helper.html
+            const TOP = [
+                { x: 28.908, y: 34.569 },
+                { x: 37.249, y: 34.398 },
+                { x: 45.476, y: 34.398 },
+                { x: 53.702, y: 34.226 },
+                { x: 61.929, y: 34.226 },
+                { x: 70.156, y: 34.226 }
+            ];
+            const BOTTOM = [
+                { x: 28.908, y: 52.926 },
+                { x: 37.477, y: 53.097 },
+                { x: 45.361, y: 52.926 },
+                { x: 53.702, y: 52.926 },
+                { x: 62.043, y: 52.926 },
+                { x: 70.27, y: 52.926 }
+            ];
 
             // Player 2 pits (top row): left->right indexes 1..6
             for (let i = 1; i <= 6; i++) {
                 const pit = document.createElement('div');
-                pit.className = 'pit';
+                pit.className = 'pit top-row';
                 pit.id = `pit2-${i}`;
                 pit.dataset.player = '2';
                 pit.dataset.pitIndex = String(i);
-                pit.style.left = `${x[i - 1]}%`;
-                pit.style.top = `${yTop}%`;
+                pit.style.left = `${TOP[i - 1].x}%`;
+                pit.style.top = `${TOP[i - 1].y}%`;
                 pit.innerHTML = `<div class="pit-stones"></div>`;
                 pit.onclick = () => makeMove(2, i);
                 overlay.appendChild(pit);
@@ -1036,12 +1091,12 @@
             for (let pos = 0; pos < 6; pos++) {
                 const pitIndex = 6 - pos;
                 const pit = document.createElement('div');
-                pit.className = 'pit';
+                pit.className = 'pit bottom-row';
                 pit.id = `pit1-${pitIndex}`;
                 pit.dataset.player = '1';
                 pit.dataset.pitIndex = String(pitIndex);
-                pit.style.left = `${x[pos]}%`;
-                pit.style.top = `${yBottom}%`;
+                pit.style.left = `${BOTTOM[pos].x}%`;
+                pit.style.top = `${BOTTOM[pos].y}%`;
                 pit.innerHTML = `<div class="pit-stones"></div>`;
                 pit.onclick = () => makeMove(1, pitIndex);
                 overlay.appendChild(pit);

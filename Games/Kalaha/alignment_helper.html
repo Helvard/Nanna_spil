@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kalaha Alignment Helper</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: #0b1220;
+      color: #e8eefc;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      padding: 16px;
+      min-height: 100vh;
+    }
+    .stage {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+    .stageHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .stageHeader .left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #e8eefc;
+    }
+    button {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10);
+      color: #e8eefc;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover { background: rgba(255,255,255,0.14); }
+    button:active { transform: translateY(1px); }
+    button.danger { border-color: rgba(255,120,120,0.35); background: rgba(255,120,120,0.12); }
+    button.primary { border-color: rgba(120,180,255,0.35); background: rgba(120,180,255,0.14); }
+    .boardWrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1024 / 682;
+      background: rgba(0,0,0,0.25);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    .boardWrap img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+    .sidebar {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: auto;
+    }
+    h2 { margin: 0; font-size: 16px; }
+    .muted { opacity: 0.8; font-size: 13px; line-height: 1.35; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    label {
+      font-size: 12px;
+      opacity: 0.9;
+      display: block;
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #e8eefc;
+      outline: none;
+    }
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #e8eefc;
+      outline: none;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .list {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 12px;
+      padding: 10px;
+      overflow: auto;
+      max-height: 240px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .row:last-child { border-bottom: 0; }
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 2px 6px;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="stage">
+      <div class="stageHeader">
+        <div class="left">
+          <span class="pill">Click on the image to place points</span>
+          <span class="pill">Points are stored as % of the board</span>
+          <span class="pill">Undo: <span class="kbd">⌘Z</span> / <span class="kbd">Ctrl+Z</span></span>
+        </div>
+        <div class="left">
+          <button id="undoBtn">Undo</button>
+          <button id="clearBtn" class="danger">Clear</button>
+        </div>
+      </div>
+
+      <div class="boardWrap" id="boardWrap">
+        <img id="bg" alt="Kalaha background" />
+        <svg class="overlay" id="overlay" viewBox="0 0 1000 1000" preserveAspectRatio="none"></svg>
+      </div>
+
+      <div class="muted">
+        Suggested order:
+        <span class="kbd">storeL</span>, <span class="kbd">storeR</span>,
+        <span class="kbd">top1..top6</span>,
+        <span class="kbd">bottom1..bottom6</span>.
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div>
+        <h2>Settings</h2>
+        <div class="grid" style="margin-top: 10px;">
+          <div>
+            <label for="imageSelect">Background image</label>
+            <select id="imageSelect">
+              <option value="kalaha_background_new.jpg">kalaha_background_new.jpg</option>
+              <option value="Kalaha_image.jpg">Kalaha_image.jpg</option>
+            </select>
+          </div>
+          <div>
+            <label for="pointLabel">Next label</label>
+            <input id="pointLabel" value="storeL" autocomplete="off" />
+          </div>
+          <div>
+            <label for="markerSize">Marker size</label>
+            <input id="markerSize" type="number" min="6" max="40" step="1" value="14" />
+          </div>
+          <div>
+            <label for="snap">Snap (px)</label>
+            <input id="snap" type="number" min="0" max="50" step="1" value="0" />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2>Points</h2>
+        <div class="muted" style="margin-top: 6px;">Click to add a point. Use a consistent label scheme.</div>
+        <div class="list" id="pointsList" style="margin-top: 10px;"></div>
+      </div>
+
+      <div>
+        <h2>Export</h2>
+        <div class="muted" style="margin-top: 6px;">Copy/paste into <span class="kbd">createPits()</span> as coordinates.</div>
+        <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+          <button id="exportJsonBtn" class="primary">Export JSON</button>
+          <button id="exportJsBtn">Export JS snippet</button>
+          <button id="copyBtn">Copy</button>
+        </div>
+        <textarea id="output" spellcheck="false" style="margin-top: 10px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById('overlay');
+    const boardWrap = document.getElementById('boardWrap');
+    const bg = document.getElementById('bg');
+    const imageSelect = document.getElementById('imageSelect');
+    const pointLabel = document.getElementById('pointLabel');
+    const markerSize = document.getElementById('markerSize');
+    const snapInput = document.getElementById('snap');
+    const pointsList = document.getElementById('pointsList');
+    const output = document.getElementById('output');
+
+    const undoBtn = document.getElementById('undoBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const exportJsonBtn = document.getElementById('exportJsonBtn');
+    const exportJsBtn = document.getElementById('exportJsBtn');
+    const copyBtn = document.getElementById('copyBtn');
+
+    const state = {
+      points: [],
+      lastExport: ''
+    };
+
+    function setImage(name) {
+      bg.src = name;
+    }
+
+    function getRelativePoint(clientX, clientY) {
+      const rect = boardWrap.getBoundingClientRect();
+      let x = (clientX - rect.left) / rect.width;
+      let y = (clientY - rect.top) / rect.height;
+      x = Math.max(0, Math.min(1, x));
+      y = Math.max(0, Math.min(1, y));
+
+      const snapPx = Number(snapInput.value || 0);
+      if (snapPx > 0) {
+        const xPx = x * rect.width;
+        const yPx = y * rect.height;
+        const snappedX = Math.round(xPx / snapPx) * snapPx;
+        const snappedY = Math.round(yPx / snapPx) * snapPx;
+        x = snappedX / rect.width;
+        y = snappedY / rect.height;
+      }
+
+      return { x, y };
+    }
+
+    function render() {
+      overlay.innerHTML = '';
+
+      const size = Math.max(6, Number(markerSize.value || 14));
+
+      for (const p of state.points) {
+        const cx = p.x * 1000;
+        const cy = p.y * 1000;
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', String(cx));
+        circle.setAttribute('cy', String(cy));
+        circle.setAttribute('r', String(size));
+        circle.setAttribute('fill', 'rgba(255,255,255,0.18)');
+        circle.setAttribute('stroke', 'rgba(120,180,255,0.85)');
+        circle.setAttribute('stroke-width', '2');
+        overlay.appendChild(circle);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', String(cx));
+        text.setAttribute('y', String(cy - size - 6));
+        text.setAttribute('fill', 'rgba(255,255,255,0.95)');
+        text.setAttribute('font-size', '18');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-family', 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace');
+        text.textContent = p.label;
+        overlay.appendChild(text);
+      }
+
+      pointsList.innerHTML = '';
+      if (state.points.length === 0) {
+        pointsList.innerHTML = '<div class="muted">No points yet.</div>';
+      } else {
+        for (let i = 0; i < state.points.length; i++) {
+          const p = state.points[i];
+          const row = document.createElement('div');
+          row.className = 'row';
+          const left = document.createElement('div');
+          const right = document.createElement('div');
+          left.textContent = `${i + 1}. ${p.label}`;
+          right.textContent = `${(p.x * 100).toFixed(2)}%, ${(p.y * 100).toFixed(2)}%`;
+          row.appendChild(left);
+          row.appendChild(right);
+          pointsList.appendChild(row);
+        }
+      }
+    }
+
+    function addPoint(e) {
+      const pt = getRelativePoint(e.clientX, e.clientY);
+      const label = (pointLabel.value || '').trim() || `p${state.points.length + 1}`;
+      state.points.push({ label, x: pt.x, y: pt.y });
+      autoAdvanceLabel(label);
+      render();
+    }
+
+    function autoAdvanceLabel(label) {
+      const m = label.match(/^(.*?)(\d+)$/);
+      if (!m) return;
+      const base = m[1];
+      const n = Number(m[2]);
+      if (!Number.isFinite(n)) return;
+      pointLabel.value = `${base}${n + 1}`;
+    }
+
+    function undo() {
+      if (state.points.length === 0) return;
+      state.points.pop();
+      render();
+    }
+
+    function clearAll() {
+      state.points = [];
+      output.value = '';
+      state.lastExport = '';
+      render();
+    }
+
+    function exportJson() {
+      const data = {
+        image: imageSelect.value,
+        points: state.points.map(p => ({
+          label: p.label,
+          xPercent: Number((p.x * 100).toFixed(3)),
+          yPercent: Number((p.y * 100).toFixed(3))
+        }))
+      };
+      const text = JSON.stringify(data, null, 2);
+      output.value = text;
+      state.lastExport = text;
+    }
+
+    function exportJs() {
+      const points = state.points.map(p => ({
+        label: p.label,
+        x: Number((p.x * 100).toFixed(3)),
+        y: Number((p.y * 100).toFixed(3))
+      }));
+
+      const text = `const ALIGNMENT = ${JSON.stringify(points, null, 2)};\n` +
+        `// Example: top row x array if you used labels top1..top6\n` +
+        `const xTop = ALIGNMENT.filter(p => /^top\d+$/.test(p.label)).sort((a,b) => Number(a.label.slice(3)) - Number(b.label.slice(3))).map(p => p.x);\n` +
+        `const yTop = ALIGNMENT.find(p => p.label === 'top1')?.y;\n` +
+        `// Example: bottom row x array if you used labels bottom1..bottom6\n` +
+        `const xBottom = ALIGNMENT.filter(p => /^bottom\d+$/.test(p.label)).sort((a,b) => Number(a.label.slice(6)) - Number(b.label.slice(6))).map(p => p.x);\n`;
+
+      output.value = text;
+      state.lastExport = text;
+    }
+
+    async function copyOut() {
+      const text = output.value || state.lastExport || '';
+      if (!text) return;
+      await navigator.clipboard.writeText(text);
+    }
+
+    overlay.addEventListener('click', addPoint);
+
+    undoBtn.addEventListener('click', undo);
+    clearBtn.addEventListener('click', clearAll);
+
+    exportJsonBtn.addEventListener('click', exportJson);
+    exportJsBtn.addEventListener('click', exportJs);
+    copyBtn.addEventListener('click', copyOut);
+
+    imageSelect.addEventListener('change', () => {
+      setImage(imageSelect.value);
+    });
+
+    window.addEventListener('keydown', (e) => {
+      const z = e.key.toLowerCase() === 'z';
+      if (z && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        undo();
+      }
+    });
+
+    setImage(imageSelect.value);
+    render();
+  </script>
+</body>
+</html>
