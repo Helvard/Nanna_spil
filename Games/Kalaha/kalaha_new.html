@@ -635,6 +635,10 @@
                 img1.src = imgSrc;
                 img1.className = 'avatar-option';
                 img1.onclick = () => selectAvatar(1, imgSrc, img1);
+                img1.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    selectAvatar(1, imgSrc, img1);
+                }, { passive: false });
                 grid1.appendChild(img1);
                 
                 // Player 2 avatars
@@ -642,6 +646,10 @@
                 img2.src = imgSrc;
                 img2.className = 'avatar-option';
                 img2.onclick = () => selectAvatar(2, imgSrc, img2);
+                img2.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    selectAvatar(2, imgSrc, img2);
+                }, { passive: false });
                 grid2.appendChild(img2);
             });
         }
