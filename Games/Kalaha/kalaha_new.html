@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐾 Paw Patrol Kalaha - Nyt Spil</title>
+    <title>Egyptisk Kalaha - Nyt Spil</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            cursor: url('../../paw_patrol/cursor_badge.jpeg'), auto;
+            cursor: auto;
         }
 
         body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            background-image: url('../../paw_patrol/Adventure_Bay_%28S3%29.webp');
+            font-family: 'Papyrus', 'Copperplate', 'Trebuchet MS', system-ui, sans-serif;
+            background-image: url('egyptian_background.jpeg');
             background-size: cover;
             background-attachment: fixed;
             background-position: center;
@@ -27,13 +27,18 @@
         }
 
         .game-container {
-            background: rgba(255, 255, 255, 0.95);
+            background:
+                linear-gradient(180deg, rgba(255, 250, 235, 0.92) 0%, rgba(245, 228, 190, 0.92) 100%),
+                repeating-linear-gradient(90deg, rgba(120, 86, 38, 0.035) 0px, rgba(120, 86, 38, 0.035) 2px, rgba(255, 255, 255, 0) 2px, rgba(255, 255, 255, 0) 10px),
+                repeating-linear-gradient(0deg, rgba(120, 86, 38, 0.02) 0px, rgba(120, 86, 38, 0.02) 1px, rgba(255, 255, 255, 0) 1px, rgba(255, 255, 255, 0) 9px);
             border-radius: 30px;
             padding: 18px;
             max-width: 1400px;
             width: 100%;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
             animation: containerFloat 3s ease-in-out infinite;
+            border: 1px solid rgba(120, 86, 38, 0.25);
+            backdrop-filter: blur(2px);
         }
 
         @keyframes containerFloat {
@@ -75,7 +80,9 @@
         }
 
         .mode-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background:
+                linear-gradient(180deg, rgba(255, 250, 235, 0.95) 0%, rgba(242, 220, 175, 0.95) 100%),
+                repeating-linear-gradient(90deg, rgba(120, 86, 38, 0.03) 0px, rgba(120, 86, 38, 0.03) 2px, rgba(255, 255, 255, 0) 2px, rgba(255, 255, 255, 0) 10px);
             border-radius: 20px;
             padding: 30px;
             min-width: 250px;
@@ -87,18 +94,30 @@
         .mode-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
-            border-color: #1a5490;
+            border-color: rgba(186, 140, 55, 0.9);
         }
 
         .mode-card.selected {
-            border-color: #e63946;
-            background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+            border-color: rgba(186, 140, 55, 1);
+            background:
+                linear-gradient(180deg, rgba(255, 245, 220, 0.98) 0%, rgba(235, 205, 150, 0.98) 100%),
+                repeating-linear-gradient(90deg, rgba(120, 86, 38, 0.04) 0px, rgba(120, 86, 38, 0.04) 2px, rgba(255, 255, 255, 0) 2px, rgba(255, 255, 255, 0) 10px);
             transform: scale(1.05);
         }
 
         .mode-icon {
             font-size: 3em;
             margin-bottom: 15px;
+        }
+
+        .mode-icon-img {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid rgba(186, 140, 55, 0.75);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
         }
 
         .mode-title {
@@ -154,16 +173,18 @@
         }
 
         button {
-            background: linear-gradient(135deg, #1a5490 0%, #0d3a6b 100%);
+            background: linear-gradient(135deg, #caa24a 0%, #8a5a13 100%);
             color: white;
-            border: none;
+            border: 1px solid rgba(120, 86, 38, 0.55);
             padding: 18px 50px;
             font-size: 1.3em;
             border-radius: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            box-shadow: 0 6px 20px rgba(26, 84, 144, 0.3);
+            font-family: inherit;
+            box-shadow:
+                0 10px 24px rgba(0, 0, 0, 0.22),
+                inset 0 2px 0 rgba(255, 255, 255, 0.25);
             position: relative;
             overflow: hidden;
         }
@@ -175,7 +196,7 @@
             left: 50%;
             width: 0;
             height: 0;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 240, 200, 0.38);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             transition: width 0.6s, height 0.6s;
@@ -188,7 +209,9 @@
 
         button:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(26, 84, 144, 0.4);
+            box-shadow:
+                0 14px 30px rgba(0, 0, 0, 0.28),
+                0 0 18px rgba(202, 162, 74, 0.35);
         }
 
         button:disabled {
@@ -214,7 +237,9 @@
             align-items: center;
             margin-bottom: 20px;
             padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background:
+                linear-gradient(180deg, rgba(255, 250, 235, 0.92) 0%, rgba(240, 220, 175, 0.92) 100%),
+                repeating-linear-gradient(90deg, rgba(120, 86, 38, 0.025) 0px, rgba(120, 86, 38, 0.025) 2px, rgba(255, 255, 255, 0) 2px, rgba(255, 255, 255, 0) 10px);
             border-radius: 15px;
             flex-wrap: wrap;
             gap: 15px;
@@ -273,11 +298,11 @@
             background-repeat: no-repeat;
             border-radius: 20px;
             padding: 0;
-            margin: 20px 0;
+            margin: 20px auto;
             box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.3);
             position: relative;
             width: 100%;
-            max-width: min(1200px, 98vw);
+            max-width: min(1480px, 100%);
             aspect-ratio: 1024 / 682;
         }
 
@@ -389,8 +414,8 @@
         }
 
         .stone {
-            width: 30px;
-            height: 30px;
+            width: 38px;
+            height: 38px;
             object-fit: contain;
             position: absolute;
             transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
@@ -404,7 +429,7 @@
         
 
         .stone.drop {
-            animation: stoneDrop 180ms ease-out;
+            animation: stoneDrop 260ms ease-out;
         }
 
         @keyframes stoneDrop {
@@ -423,6 +448,28 @@
 
         .pit.highlight {
             animation: pitHighlight 1s ease-in-out infinite;
+        }
+
+        .pit.sow-target,
+        .store.sow-target {
+            animation: sowTargetPulse 320ms ease-out;
+            outline: 5px solid rgba(255, 215, 0, 0.95);
+            box-shadow:
+                0 0 0 4px rgba(255, 255, 255, 0.65),
+                0 0 26px rgba(255, 215, 0, 0.95),
+                0 10px 26px rgba(0, 0, 0, 0.25);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        @keyframes sowTargetPulse {
+            from {
+                transform: translate(-50%, -50%) scale(1.03);
+                filter: brightness(1.12) saturate(1.1);
+            }
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                filter: none;
+            }
         }
 
         @keyframes pitHighlight {
@@ -583,12 +630,12 @@
     <div class="game-container">
         <!-- Start Screen -->
         <div class="start-screen" id="startScreen">
-            <h1>🐾 Paw Patrol Kalaha 🐾</h1>
+            <h1>Egyptisk Kalaha</h1>
             
             <div class="game-modes">
                 <div class="mode-card" onclick="selectMode('ai', this)" ontouchstart="selectMode('ai', this); return false;">
-                    <div class="mode-icon">🤖</div>
-                    <div class="mode-title">vs Computer</div>
+                    <img class="mode-icon-img" src="egypt_avatar_6.png" alt="Computer">
+                    <div class="mode-title">Mod Computer</div>
                     <div class="mode-description">Spil mod en smart computermodstander</div>
                 </div>
                 
@@ -612,7 +659,7 @@
 
         <!-- Game Screen -->
         <div class="game-screen" id="gameScreen">
-            <h1>🐾 Paw Patrol Kalaha 🐾</h1>
+            <h1>Egyptisk Kalaha</h1>
             
             <div class="game-info" id="gameInfo"></div>
             
@@ -684,21 +731,24 @@
         const STONE_OFFSET_X_PX = 0;
         const STONE_OFFSET_Y_PX = 0;
 
+        const SOW_STEP_MS = 650;
+        const SOW_TARGET_PULSE_MS = 320;
+
         // Avatar Images
         const AVATAR_IMAGES = [
-            '../../paw_patrol/download.jpeg',
-            '../../paw_patrol/download (1).jpeg',
-            '../../paw_patrol/download (2).jpeg',
-            '../../paw_patrol/download (3).jpeg',
-            '../../paw_patrol/download (4).jpeg',
-            '../../paw_patrol/download (5).jpeg',
-            '../../paw_patrol/images.jpeg',
-            '../../paw_patrol/images (1).jpeg',
-            '../../paw_patrol/images (2).jpeg',
-            '../../paw_patrol/images (3).jpeg',
-            '../../paw_patrol/images (4).jpeg',
-            '../../paw_patrol/images (5).jpeg'
+            'egypt_avatar_1.png',
+            'egypt_avatar_2.png',
+            'egypt_avatar_3.png',
+            'egypt_avatar_4.png',
+            'egypt_avatar_5.jpeg',
+            'egypt_avatar_6.png'
         ];
+
+        function pickDifferentAvatar(excludeSrc) {
+            const pool = AVATAR_IMAGES.filter(a => a !== excludeSrc);
+            if (pool.length === 0) return excludeSrc;
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
 
         // Initialize Game
         function initGame() {
@@ -893,7 +943,7 @@
             
             // Set player 2 avatar for AI mode
             if (gameMode === 'ai') {
-                player2Avatar = '../../paw_patrol/zuma-labrador-retriever-puppy-clip-art-paw-patrol.jpg';
+                player2Avatar = pickDifferentAvatar(player1Avatar);
             }
             
             // Initialize game
@@ -933,6 +983,35 @@
             return img;
         }
 
+        function pulseSowTarget(el) {
+            if (!el) return;
+            el.classList.remove('sow-target');
+            void el.offsetWidth;
+            el.classList.add('sow-target');
+            setTimeout(() => el.classList.remove('sow-target'), SOW_TARGET_PULSE_MS);
+        }
+
+        function getNextSowPosition(player, currentRow, currentPit) {
+            // Pits are numbered 1..6 where pit1 is closest to the player's store.
+            // Sowing direction for both players is toward pit1, then (only for own row) into store.
+            // Sequence example (player 1): 4 -> 3 -> 2 -> 1 -> store -> opponent 6 -> ... -> 1 -> back to own 6...
+            if (currentPit === 0) {
+                // We were at the store; continue on the opponent side at pit6
+                return { row: currentRow === 1 ? 2 : 1, pit: 6, isStore: false };
+            }
+            if (currentPit > 1) {
+                return { row: currentRow, pit: currentPit - 1, isStore: false };
+            }
+
+            // currentPit === 1
+            if (currentRow === player) {
+                return { row: currentRow, pit: 0, isStore: true };
+            }
+
+            // Opponent pit1 -> jump to player's pit6
+            return { row: currentRow === 1 ? 2 : 1, pit: 6, isStore: false };
+        }
+
         function pickUpStonesFromPit(player, pitIndex) {
             const hand = document.getElementById('hand');
             const pitEl = getPitElement(player, pitIndex);
@@ -944,11 +1023,12 @@
                 hand.appendChild(st);
             });
             setStoneCountBadge(container, 0);
+            setPitCountBadge(player, pitIndex, 0);
             return picked;
         }
 
-        function randomStonePosition(el, countInContainer) {
-            const container = el.parentElement;
+        function randomStonePosition(el, countInContainer, containerOverride) {
+            const container = containerOverride || el.parentElement;
             const w = container ? container.clientWidth : 80;
             const h = container ? container.clientHeight : 80;
             const stoneSize = parseFloat(getComputedStyle(el).width) || 30;
@@ -996,8 +1076,8 @@
             const toRender = Math.min(count, maxRendered);
             for (let i = 0; i < toRender; i++) {
                 const stone = createStoneElement();
-                randomStonePosition(stone, toRender);
                 container.appendChild(stone);
+                randomStonePosition(stone, toRender, container);
             }
         }
 
@@ -1141,41 +1221,45 @@
                 }
                 
                 // Move to next position
-                currentPit++;
-                if (currentPit === 7) {
-                    // Reached store
-                    if (currentRow === player) {
-                        board[currentRow - 1][0]++;
-                        const store = getStoreContainer(player);
-                        if (store) {
-                            const stoneEl = picked.pop() || createStoneElement();
-                            randomStonePosition(stoneEl, Math.min(board[player - 1][0], 16));
-                            stoneEl.classList.remove('drop');
-                            void stoneEl.offsetWidth;
-                            stoneEl.classList.add('drop');
-                            store.appendChild(stoneEl);
-                            setStoneCountBadge(store, board[player - 1][0]);
-                        }
-                        lastLandingRow = currentRow;
-                        lastLandingPit = 0;
-                        lastLandingWasStore = true;
+                const next = getNextSowPosition(player, currentRow, currentPit);
+                currentRow = next.row;
+                currentPit = next.pit;
+
+                if (next.isStore) {
+                    board[currentRow - 1][0]++;
+                    const store = getStoreContainer(player);
+                    if (store) {
+                        pulseSowTarget(store.closest('.store'));
+                        const stoneEl = picked.pop() || createStoneElement();
+                        stoneEl.classList.remove('drop');
+                        void stoneEl.offsetWidth;
+                        stoneEl.classList.add('drop');
+                        store.appendChild(stoneEl);
+                        randomStonePosition(stoneEl, Math.min(board[player - 1][0], 16), store);
+                        setStoneCountBadge(store, board[player - 1][0]);
                     }
-                    currentPit = 0;
-                    currentRow = currentRow === 1 ? 2 : 1;
+
+                    setStoreCountBadges();
+
+                    lastLandingRow = currentRow;
+                    lastLandingPit = 0;
+                    lastLandingWasStore = true;
                 } else {
-                    // Regular pit
                     board[currentRow - 1][currentPit]++;
                     const destPit = getPitElement(currentRow, currentPit);
                     const destContainer = destPit ? destPit.querySelector('.pit-stones') : null;
                     if (destContainer) {
+                        pulseSowTarget(destPit);
                         const stoneEl = picked.pop() || createStoneElement();
-                        randomStonePosition(stoneEl, Math.min(board[currentRow - 1][currentPit], 12));
                         stoneEl.classList.remove('drop');
                         void stoneEl.offsetWidth;
                         stoneEl.classList.add('drop');
                         destContainer.appendChild(stoneEl);
+                        randomStonePosition(stoneEl, Math.min(board[currentRow - 1][currentPit], 12), destContainer);
                         setStoneCountBadge(destContainer, board[currentRow - 1][currentPit]);
                     }
+
+                    setPitCountBadge(currentRow, currentPit, board[currentRow - 1][currentPit]);
 
                     lastLandingRow = currentRow;
                     lastLandingPit = currentPit;
@@ -1183,7 +1267,7 @@
                 }
                 
                 currentStones--;
-            }, 220);
+            }, SOW_STEP_MS);
         }
 
         function finishMove(player, lastRow, lastPit, lastWasStore) {
@@ -1195,22 +1279,27 @@
                 showFeedback('Ekstra tur!', 'extra-turn');
                 updateGameInfo();
                 animating = false;
+
+                // If AI earned an extra turn, take it automatically
+                if (gameMode === 'ai' && currentPlayer === 2) {
+                    setTimeout(() => makeAIMove(), 900);
+                }
                 return;
             }
             
-            // If last pit has stones, pick them up and continue sowing
-            if (board[lastRow - 1][lastPit] > 0) {
+            // Avalanche rule: continue only if the last pit was NOT empty before the last stone dropped.
+            // After dropping a stone, an originally-empty pit will have exactly 1 stone.
+            if (board[lastRow - 1][lastPit] > 1) {
                 showFeedback('Fortsætter med at så!', 'extra-turn');
                 
                 // Pick up stones from last pit and continue sowing
                 const continueStones = board[lastRow - 1][lastPit];
                 board[lastRow - 1][lastPit] = 0;
                 const picked = pickUpStonesFromPit(lastRow, lastPit);
-                updateDisplay();
                 
                 // Continue sowing from this position
                 setTimeout(() => {
-                    animateContinueMove(lastRow, lastPit, continueStones, picked);
+                    animateContinueMove(player, lastRow, lastPit, continueStones, picked);
                 }, 500);
                 return;
             }
@@ -1230,18 +1319,19 @@
             
             // AI move
             if (gameMode === 'ai' && currentPlayer === 2) {
+                animating = false;
                 setTimeout(() => makeAIMove(), 1000);
             } else {
                 animating = false;
             }
         }
 
-        function animateContinueMove(player, startPit, stones, picked) {
+        function animateContinueMove(mover, startRow, startPit, stones, picked) {
             let currentStones = stones;
             let currentPit = startPit;
-            let currentRow = player;
+            let currentRow = startRow;
 
-            let lastLandingRow = player;
+            let lastLandingRow = startRow;
             let lastLandingPit = startPit;
             let lastLandingWasStore = false;
             
@@ -1249,47 +1339,50 @@
             const interval = setInterval(() => {
                 if (currentStones === 0) {
                     clearInterval(interval);
-                    finishMove(player, lastLandingRow, lastLandingPit, lastLandingWasStore);
+                    finishMove(mover, lastLandingRow, lastLandingPit, lastLandingWasStore);
                     return;
                 }
                 
                 // Move to next position
-                currentPit++;
-                if (currentPit === 7) {
-                    // Reached store
-                    if (currentRow === player) {
-                        board[currentRow - 1][0]++;
-                        const store = getStoreContainer(player);
-                        if (store) {
-                            const stoneEl = (picked && picked.pop()) || createStoneElement();
-                            randomStonePosition(stoneEl, Math.min(board[player - 1][0], 16));
-                            stoneEl.classList.remove('drop');
-                            void stoneEl.offsetWidth;
-                            stoneEl.classList.add('drop');
-                            store.appendChild(stoneEl);
-                            setStoneCountBadge(store, board[player - 1][0]);
-                        }
+                const next = getNextSowPosition(mover, currentRow, currentPit);
+                currentRow = next.row;
+                currentPit = next.pit;
 
-                        lastLandingRow = currentRow;
-                        lastLandingPit = 0;
-                        lastLandingWasStore = true;
+                if (next.isStore) {
+                    board[currentRow - 1][0]++;
+                    const store = getStoreContainer(mover);
+                    if (store) {
+                        pulseSowTarget(store.closest('.store'));
+                        const stoneEl = (picked && picked.pop()) || createStoneElement();
+                        stoneEl.classList.remove('drop');
+                        void stoneEl.offsetWidth;
+                        stoneEl.classList.add('drop');
+                        store.appendChild(stoneEl);
+                        randomStonePosition(stoneEl, Math.min(board[mover - 1][0], 16), store);
+                        setStoneCountBadge(store, board[mover - 1][0]);
                     }
-                    currentPit = 0;
-                    currentRow = currentRow === 1 ? 2 : 1;
+
+                    setStoreCountBadges();
+
+                    lastLandingRow = currentRow;
+                    lastLandingPit = 0;
+                    lastLandingWasStore = true;
                 } else {
-                    // Regular pit
                     board[currentRow - 1][currentPit]++;
                     const destPit = getPitElement(currentRow, currentPit);
                     const destContainer = destPit ? destPit.querySelector('.pit-stones') : null;
                     if (destContainer) {
+                        pulseSowTarget(destPit);
                         const stoneEl = (picked && picked.pop()) || createStoneElement();
-                        randomStonePosition(stoneEl, Math.min(board[currentRow - 1][currentPit], 12));
                         stoneEl.classList.remove('drop');
                         void stoneEl.offsetWidth;
                         stoneEl.classList.add('drop');
                         destContainer.appendChild(stoneEl);
+                        randomStonePosition(stoneEl, Math.min(board[currentRow - 1][currentPit], 12), destContainer);
                         setStoneCountBadge(destContainer, board[currentRow - 1][currentPit]);
                     }
+
+                    setPitCountBadge(currentRow, currentPit, board[currentRow - 1][currentPit]);
 
                     lastLandingRow = currentRow;
                     lastLandingPit = currentPit;
@@ -1297,7 +1390,7 @@
                 }
                 
                 currentStones--;
-            }, 220);
+            }, SOW_STEP_MS);
         }
 
         function makeAIMove() {
@@ -1320,6 +1413,29 @@
             }
             
             if (validPits.length === 0) return -1;
+
+            const getValidPitsForBoard = (b, player) => {
+                const idx = player - 1;
+                const pits = [];
+                for (let i = 1; i <= 6; i++) {
+                    if (b[idx][i] > 0) pits.push(i);
+                }
+                return pits;
+            };
+
+            const pickBestMoveForBoard = (b, player) => {
+                const pits = getValidPitsForBoard(b, player);
+                if (pits.length === 0) return { pit: -1, score: -Infinity };
+
+                let best = { pit: pits[0], score: -Infinity };
+                for (const pit of pits) {
+                    const { board: nextBoard, extraTurn } = simulateAvalancheMove(b, player, pit);
+                    let s = evaluateBoardForPlayer(nextBoard, player);
+                    if (extraTurn) s += 40;
+                    if (s > best.score) best = { pit, score: s };
+                }
+                return best;
+            };
             
             // Adjust AI behavior based on skill level
             let bestMove = -1;
@@ -1327,26 +1443,16 @@
             
             for (const pit of validPits) {
                 let score = 0;
-                const stones = board[1][pit];
-                
-                // Base scoring (applies to all levels)
-                if ((pit + stones) % 7 === 0) {
-                    score += 100; // Extra turn
-                }
-                
-                const totalStones = pit + stones;
-                let lastPit = totalStones % 7;
-                let lastRow = 2;
-                
-                if (totalStones > 6 && totalStones < 13) {
-                    lastRow = 1;
-                    lastPit = totalStones - 6;
-                }
-                
-                if (lastPit !== 0 && board[lastRow - 1][lastPit] > 0) {
-                    score += board[lastRow - 1][lastPit] * 10; // Chain creation
-                }
-                
+
+                const baseBoard = [
+                    [...board[0]],
+                    [...board[1]]
+                ];
+
+                const sim = simulateAvalancheMove(baseBoard, 2, pit);
+                score += evaluateBoardForPlayer(sim.board, 2);
+                if (sim.extraTurn) score += 50;
+
                 // Skill level adjustments
                 switch(playerSkillLevel) {
                     case 1: // Beginner - AI makes some mistakes
@@ -1354,8 +1460,6 @@
                         if (Math.random() < 0.3) {
                             score = Math.random() * 50;
                         }
-                        // Don't look ahead too much
-                        score += stones * 1;
                         break;
                         
                     case 2: // Easy - Basic strategy with some randomness
@@ -1363,11 +1467,11 @@
                         if (Math.random() < 0.2) {
                             score = Math.random() * 70;
                         }
-                        // Basic defensive play
-                        const simulatedBoard = simulateMove(2, pit);
-                        const opponentScore = evaluateBoardForPlayer(simulatedBoard, 1);
-                        score -= opponentScore * 3;
-                        score += stones * 2;
+                        // Light penalty for leaving opponent a strong immediate move
+                        {
+                            const oppBest = pickBestMoveForBoard(sim.board, 1);
+                            score -= Math.max(0, oppBest.score) * 0.15;
+                        }
                         break;
                         
                     case 3: // Medium - Balanced strategy
@@ -1375,11 +1479,11 @@
                         if (Math.random() < 0.1) {
                             score = Math.random() * 90;
                         }
-                        // Good defensive play
-                        const simulatedBoard2 = simulateMove(2, pit);
-                        const opponentScore2 = evaluateBoardForPlayer(simulatedBoard2, 1);
-                        score -= opponentScore2 * 5;
-                        score += stones * 2;
+                        // 1-ply lookahead: assume opponent plays best immediate response
+                        {
+                            const opp = pickBestMoveForBoard(sim.board, 1);
+                            score -= Math.max(0, opp.score) * 0.35;
+                        }
                         break;
                         
                     case 4: // Hard - Strong strategy
@@ -1387,11 +1491,11 @@
                         if (Math.random() < 0.05) {
                             score = Math.random() * 95;
                         }
-                        // Strong defensive play
-                        const simulatedBoard3 = simulateMove(2, pit);
-                        const opponentScore3 = evaluateBoardForPlayer(simulatedBoard3, 1);
-                        score -= opponentScore3 * 8;
-                        score += stones * 3;
+                        // 1-ply lookahead with stronger penalty
+                        {
+                            const opp = pickBestMoveForBoard(sim.board, 1);
+                            score -= Math.max(0, opp.score) * 0.55;
+                        }
                         break;
                         
                     case 5: // Expert - Optimal play
@@ -1399,11 +1503,17 @@
                         if (Math.random() < 0.02) {
                             score = Math.random() * 98;
                         }
-                        // Maximum defensive play
-                        const simulatedBoard4 = simulateMove(2, pit);
-                        const opponentScore4 = evaluateBoardForPlayer(simulatedBoard4, 1);
-                        score -= opponentScore4 * 10;
-                        score += stones * 4;
+                        // 2-ply lookahead: opponent best response, then AI best reply
+                        {
+                            const opp = pickBestMoveForBoard(sim.board, 1);
+                            if (opp.pit !== -1) {
+                                const afterOpp = simulateAvalancheMove(sim.board, 1, opp.pit);
+                                const reply = pickBestMoveForBoard(afterOpp.board, 2);
+                                score = score - Math.max(0, opp.score) * 0.75 + Math.max(0, reply.score) * 0.25;
+                            } else {
+                                score += 15;
+                            }
+                        }
                         break;
                 }
                 
@@ -1426,64 +1536,88 @@
                 [...board[1]]
             ];
             
-            let stones = simBoard[player - 1][pitIndex];
-            simBoard[player - 1][pitIndex] = 0;
-            let currentPit = pitIndex;
+            const result = simulateAvalancheMove(simBoard, player, pitIndex);
+            return result.board;
+        }
+
+        function simulateAvalancheMove(boardState, player, pitIndex) {
+            // Returns { board, extraTurn }
+            // Uses the same sowing stepper + avalanche continuation as the real game.
+            const b = [
+                [...boardState[0]],
+                [...boardState[1]]
+            ];
+
+            const pIdx = player - 1;
+            let stones = b[pIdx][pitIndex];
+            b[pIdx][pitIndex] = 0;
+
             let currentRow = player;
-            
-            while (stones > 0) {
-                currentPit++;
-                if (currentPit === 7) {
-                    if (currentRow === player) {
-                        simBoard[currentRow - 1][0]++;
+            let currentPit = pitIndex;
+            let lastRow = player;
+            let lastPit = pitIndex;
+            let lastWasStore = false;
+
+            const sowOnce = (startRow, startPit, s) => {
+                let row = startRow;
+                let pit = startPit;
+                let last = { row: startRow, pit: startPit, wasStore: false };
+                while (s > 0) {
+                    const next = getNextSowPosition(player, row, pit);
+                    row = next.row;
+                    pit = next.pit;
+                    if (next.isStore) {
+                        b[row - 1][0]++;
+                        last = { row, pit: 0, wasStore: true };
+                    } else {
+                        b[row - 1][pit]++;
+                        last = { row, pit, wasStore: false };
                     }
-                    currentPit = 0;
-                    currentRow = currentRow === 1 ? 2 : 1;
-                } else {
-                    simBoard[currentRow - 1][currentPit]++;
+                    s--;
                 }
-                stones--;
+                return last;
+            };
+
+            while (stones > 0) {
+                const last = sowOnce(currentRow, currentPit, stones);
+                lastRow = last.row;
+                lastPit = last.pit;
+                lastWasStore = last.wasStore;
+
+                if (lastWasStore) {
+                    return { board: b, extraTurn: true };
+                }
+
+                // Avalanche: continue only if last pit was non-empty before the drop (i.e. now > 1)
+                if (b[lastRow - 1][lastPit] <= 1) {
+                    return { board: b, extraTurn: false };
+                }
+
+                stones = b[lastRow - 1][lastPit];
+                b[lastRow - 1][lastPit] = 0;
+                currentRow = lastRow;
+                currentPit = lastPit;
             }
-            
-            return simBoard;
+
+            return { board: b, extraTurn: false };
         }
 
         function evaluateBoardForPlayer(boardState, player) {
             // Evaluate how good a board position is for a player
             let score = 0;
+            const idx = player - 1;
+            const opp = idx === 0 ? 1 : 0;
             
             // Store stones are most valuable
-            score += boardState[player][0] * 10;
+            score += boardState[idx][0] * 10;
+            score -= boardState[opp][0] * 10;
             
             // Stones in pits are valuable based on position
             for (let i = 1; i <= 6; i++) {
                 // Pits closer to store are slightly more valuable
                 const positionBonus = Math.abs(i - 4) * 0.5;
-                score += boardState[player][i] * (1 + positionBonus);
-            }
-            
-            // Having stones in pits that can create chains is valuable
-            for (let i = 1; i <= 6; i++) {
-                if (boardState[player][i] > 0) {
-                    // Check if this pit can land in store
-                    if ((i + boardState[player][i]) % 7 === 0) {
-                        score += 20;
-                    }
-                    
-                    // Check if this pit can create chains
-                    const totalStones = i + boardState[player][i];
-                    let lastPit = totalStones % 7;
-                    let lastRow = player;
-                    
-                    if (totalStones > 6 && totalStones < 13) {
-                        lastRow = player === 1 ? 2 : 1;
-                        lastPit = totalStones - 6;
-                    }
-                    
-                    if (lastPit !== 0 && boardState[lastRow][lastPit] > 0) {
-                        score += boardState[lastRow][lastPit] * 5;
-                    }
-                }
+                score += boardState[idx][i] * (1 + positionBonus);
+                score -= boardState[opp][i] * (1 + positionBonus) * 0.9;
             }
             
             return score;
