@@ -688,7 +688,10 @@
                     { id: 'truck', name: 'Lastbil', path: 'vehicles/truck.svg' },
                     { id: 'airplane', name: 'Fly', path: 'vehicles/airplane.svg' },
                     { id: 'boat', name: 'Båd', path: 'vehicles/boat.svg' },
-                    { id: 'train', name: 'Tog', path: 'vehicles/train.svg' }
+                    { id: 'train', name: 'Tog', path: 'vehicles/train.svg' },
+                    { id: 'elevenlabs_1', name: 'ElevenLabs 1', path: 'vehicles/ElevenLabs_image_nano-banana_Create a dra..._2026-02-15T21_22_36.png' },
+                    { id: 'elevenlabs_2', name: 'ElevenLabs 2', path: 'vehicles/ElevenLabs_image_nano-banana_Create a dra..._2026-02-15T21_22_36 (1).png' },
+                    { id: 'elevenlabs_3', name: 'ElevenLabs 3', path: 'vehicles/ElevenLabs_image_nano-banana_Create a dra..._2026-02-15T21_22_37.png' }
                 ]
             }
         };
@@ -799,16 +802,12 @@
             theme.drawings.forEach(drawing => {
                 const drawingCard = document.createElement('div');
                 drawingCard.className = 'drawing-card';
+                drawingCard.classList.toggle('active', gameState.currentDrawing && gameState.currentDrawing.id === drawing.id);
                 drawingCard.innerHTML = `
-                    <img src="${drawing.path}" alt="${drawing.name}" onerror="this.style.display='none'">
+                    <img src="${encodeURI(drawing.path)}" alt="${drawing.name}" onerror="this.style.display='none'">
                     <span>${drawing.name}</span>
                 `;
                 drawingCard.addEventListener('click', () => selectDrawing(drawing));
-                
-                if (gameState.currentDrawing && gameState.currentDrawing.id === drawing.id) {
-                    drawingCard.classList.add('active');
-                }
-                
                 drawingGrid.appendChild(drawingCard);
             });
         }
@@ -1479,8 +1478,8 @@
             const cctx = composite.getContext('2d');
             cctx.fillStyle = '#FFFFFF';
             cctx.fillRect(0, 0, composite.width, composite.height);
-            cctx.drawImage(gameState.lineCanvas, 0, 0);
             cctx.drawImage(gameState.canvas, 0, 0);
+            cctx.drawImage(gameState.lineCanvas, 0, 0);
             const thumbDataURL = composite.toDataURL('image/png');
             
             const galleryItem = {
