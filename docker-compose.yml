@@ -7,12 +7,6 @@ services:
       - "8080:80"
     environment:
       - NODE_ENV=production
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nanna.rule=Host(`nanna.pehs.dk`)"
-      - "traefik.http.routers.nanna.entrypoints=websecure"
-      - "traefik.http.routers.nanna.tls.certresolver=letsencrypt"
-      - "traefik.http.services.nanna.loadbalancer.server.port=80"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
@@ -20,24 +14,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
-  # Optional: Traefik for automatic SSL
-  traefik:
-    image: traefik:v2.10
-    command:
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=ehelvard@gmail.com"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./letsencrypt:/letsencrypt"
-    restart: unless-stopped
-    profiles: ["ssl"]
