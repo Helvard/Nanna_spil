@@ -2,10 +2,10 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini 10.000</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>10.000</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     :root {
       --gold:      #f1c40f;
@@ -13,10 +13,10 @@
       --green:     #27ae60;
       --red:       #e74c3c;
       --bg:        #1a1a2e;
-      --die-size:  clamp(68px, 14vw, 92px);
+      --die-size:  clamp(62px, 13vw, 88px);
     }
 
-    html, body { width: 100%; height: 100%; overflow: hidden; }
+    html, body { width: 100%; height: 100%; }
 
     body {
       background: var(--bg);
@@ -30,14 +30,12 @@
       justify-content: center;
       min-height: 100vh;
       color: #fff;
+      overflow-x: hidden;
     }
 
     .corner-deco {
-      position: fixed;
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      opacity: 0.1;
-      pointer-events: none;
-      user-select: none;
+      position: fixed; font-size: clamp(2rem, 5vw, 3.5rem);
+      opacity: 0.1; pointer-events: none; user-select: none; z-index: 0;
     }
     .corner-deco.tl { top: 0.6rem;    left: 0.8rem;  }
     .corner-deco.tr { top: 0.6rem;    right: 0.8rem; }
@@ -45,499 +43,440 @@
     .corner-deco.br { bottom: 0.6rem; right: 0.8rem; }
 
     /* ════════════════════════════════════════════════
-       LAYOUT
+       SETUP SKÆRM
     ════════════════════════════════════════════════ */
-    #game-screen {
-      width: 100%;
-      max-width: 620px;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0.8rem 1rem 1rem;
-      gap: 0.6rem;
+    #setup-screen {
+      width: 100%; max-width: 480px;
+      padding: 2rem 1.4rem 2.5rem;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 1.6rem;
+      position: relative; z-index: 1;
     }
 
-    h1 {
-      font-size: clamp(1.3rem, 4vw, 1.9rem);
+    #setup-screen h1 {
+      font-size: clamp(2rem, 7vw, 2.8rem);
       color: var(--gold);
-      letter-spacing: 3px;
-      text-shadow: 0 0 16px rgba(241,196,15,0.4);
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px rgba(241,196,15,0.4);
+    }
+
+    .setup-section {
+      width: 100%;
+      display: flex; flex-direction: column; gap: 0.55rem;
+    }
+    .setup-label {
+      font-family: sans-serif; font-size: 0.72rem;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* Variant-vælger */
+    .variant-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem;
+    }
+    .variant-btn {
+      padding: 1rem 0.8rem;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.5);
+      font-family: Georgia, serif;
+      cursor: pointer;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.3rem;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+    }
+    .variant-btn .v-emoji { font-size: 1.8rem; }
+    .variant-btn .v-name  { font-size: 0.95rem; font-weight: bold; letter-spacing: 1px; }
+    .variant-btn .v-goal  { font-family: sans-serif; font-size: 0.72rem; opacity: 0.55; }
+    .variant-btn.selected {
+      border-color: var(--gold);
+      background: rgba(241,196,15,0.1);
+      color: #fff;
+    }
+
+    /* Spillere */
+    .player-rows { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .player-row {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .player-color-dot {
+      width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    }
+    .player-name-input {
+      flex: 1;
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 0.55rem 0.8rem;
+      color: #fff;
+      font-family: sans-serif; font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .player-name-input:focus { border-color: rgba(255,255,255,0.3); }
+    .player-name-input::placeholder { color: rgba(255,255,255,0.2); }
+
+    .add-player-btn, .remove-player-btn {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      background: transparent;
+      color: rgba(255,255,255,0.4);
+      font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
       flex-shrink: 0;
     }
+    .add-player-btn:hover    { background: rgba(255,255,255,0.1); color: #fff; }
+    .remove-player-btn:hover { background: rgba(231,76,60,0.2); color: var(--red); border-color: var(--red); }
+
+    /* Start knap */
+    #start-btn {
+      width: 100%; padding: 1.1rem;
+      border: none; border-radius: 16px;
+      background: linear-gradient(135deg, var(--gold) 0%, #e67e22 100%);
+      color: #1a1a1a;
+      font-family: Georgia, serif; font-size: 1.2rem; font-weight: bold;
+      letter-spacing: 2px; cursor: pointer;
+      box-shadow: 0 4px 0 var(--gold-dark), 0 8px 24px rgba(241,196,15,0.2);
+      transition: transform 0.1s;
+      margin-top: 0.4rem;
+    }
+    #start-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--gold-dark); }
+
+    /* ════════════════════════════════════════════════
+       SPIL-SKÆRM
+    ════════════════════════════════════════════════ */
+    #game-screen {
+      display: none;
+      width: 100%; max-width: 640px;
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.6rem 0.9rem 0.9rem;
+      gap: 0.5rem;
+      position: relative; z-index: 1;
+    }
+    #game-screen.show { display: flex; }
+
+    /* ── Titel + menu ── */
+    #game-header {
+      width: 100%; display: flex;
+      align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    #game-title {
+      font-size: clamp(1rem, 3.5vw, 1.4rem);
+      color: var(--gold); letter-spacing: 3px;
+      text-shadow: 0 0 12px rgba(241,196,15,0.3);
+    }
+    #menu-btn {
+      background: transparent; border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 8px; color: rgba(255,255,255,0.4);
+      font-size: 0.75rem; font-family: sans-serif; letter-spacing: 1px;
+      padding: 0.35rem 0.7rem; cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    #menu-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
 
     /* ── Scoreboard ── */
     #scoreboard {
-      display: flex;
-      gap: 0.8rem;
-      width: 100%;
-      flex-shrink: 0;
+      display: flex; gap: 0.5rem; width: 100%; flex-shrink: 0;
+      flex-wrap: wrap;
     }
-
     .score-card {
-      flex: 1;
+      flex: 1; min-width: 80px;
       background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.08);
       border-radius: 14px;
-      padding: 0.6rem 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.1rem;
+      padding: 0.5rem 0.7rem;
+      display: flex; flex-direction: column; align-items: center; gap: 0.05rem;
       transition: border-color 0.3s, box-shadow 0.3s;
+      position: relative;
     }
     .score-card.active-turn {
       border-color: var(--gold);
       box-shadow: 0 0 14px rgba(241,196,15,0.2);
     }
+    .score-card .player-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      position: absolute; top: 7px; left: 8px;
+    }
     .score-card .player-name {
-      font-size: 0.72rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      font-family: sans-serif;
-      opacity: 0.6;
+      font-size: 0.65rem; letter-spacing: 2px;
+      text-transform: uppercase; font-family: sans-serif; opacity: 0.55;
     }
     .score-card .total-score {
-      font-size: clamp(1.6rem, 4.5vw, 2.2rem);
-      font-weight: bold;
-      color: var(--gold);
-      line-height: 1;
+      font-size: clamp(1.3rem, 4vw, 1.9rem);
+      font-weight: bold; color: var(--gold); line-height: 1;
     }
     .goal-bar-wrap {
-      width: 100%;
-      height: 4px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-top: 0.2rem;
+      width: 100%; height: 3px;
+      background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-top: 0.2rem;
     }
-    .goal-bar {
-      height: 100%;
-      background: var(--gold);
-      border-radius: 3px;
-      transition: width 0.5s ease;
-    }
+    .goal-bar { height: 100%; background: var(--gold); border-radius: 3px; transition: width 0.5s ease; }
 
-    /* ════════════════════════════════════════════════
-       FILT-BORD
-    ════════════════════════════════════════════════ */
+    /* ── Filt-bord ── */
     #table {
-      flex: 1;
-      width: 100%;
-      position: relative;
-      border-radius: 28px;
+      flex: 1; width: 100%;
+      position: relative; border-radius: 24px;
       background: radial-gradient(ellipse at 50% 50%, #2d6a4f 0%, #1b4332 100%);
       border: 5px solid #3d2b1f;
-      box-shadow:
-        0 0 0 2px rgba(255,255,255,0.05),
-        0 0 0 9px #2a1f15,
-        0 0 0 11px rgba(255,255,255,0.03),
-        0 16px 50px rgba(0,0,0,0.8),
-        inset 0 0 60px rgba(0,0,0,0.2);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.05), 0 0 0 9px #2a1f15,
+                  0 0 0 11px rgba(255,255,255,0.03), 0 16px 50px rgba(0,0,0,0.8),
+                  inset 0 0 60px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column; align-items: center;
       justify-content: space-between;
-      padding: 1rem 1.2rem 1rem;
-      gap: 0.5rem;
-      overflow: hidden;
+      padding: 0.8rem 1rem 0.8rem;
+      gap: 0.4rem; overflow: hidden;
     }
-
     #table::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 24px;
+      content: ''; position: absolute; inset: 0; border-radius: 20px;
       background-image: repeating-linear-gradient(
-        45deg, transparent, transparent 2px,
-        rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px
-      );
-      pointer-events: none;
+        45deg, transparent, transparent 2px, rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px
+      ); pointer-events: none;
     }
 
-    /* ── Tur-point ── */
+    /* ── Aktiv spiller-banner ── */
+    #active-player-banner {
+      font-family: sans-serif; font-size: clamp(0.75rem, 2.2vw, 0.9rem);
+      font-weight: bold; letter-spacing: 2px; text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      z-index: 1; flex-shrink: 0;
+    }
+    #active-player-banner span { color: #fff; }
+
+    /* ── Tur-score ── */
     #turn-score-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      z-index: 1;
-      flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0; z-index: 1; flex-shrink: 0;
     }
     #turn-label {
-      font-size: 0.68rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      font-family: sans-serif;
-      opacity: 0.5;
+      font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase;
+      font-family: sans-serif; opacity: 0.45;
     }
     #turn-score {
-      font-size: clamp(1.8rem, 5.5vw, 2.8rem);
-      font-weight: bold;
-      color: var(--green);
-      line-height: 1;
-      text-shadow: 0 0 12px rgba(39,174,96,0.4);
-      transition: color 0.2s;
+      font-size: clamp(1.6rem, 5vw, 2.5rem);
+      font-weight: bold; color: var(--green); line-height: 1;
+      text-shadow: 0 0 12px rgba(39,174,96,0.4); transition: color 0.2s;
     }
     #turn-score.bust { color: var(--red); }
 
+    /* ── Scoring-info (klassisk) ── */
+    #scoring-info {
+      font-family: sans-serif; font-size: clamp(0.68rem, 1.8vw, 0.8rem);
+      color: rgba(255,255,255,0.5); text-align: center;
+      min-height: 1rem; z-index: 1; flex-shrink: 0;
+    }
+
     /* ── Status ── */
     #status-msg {
-      font-size: clamp(0.85rem, 2.2vw, 1rem);
-      font-family: sans-serif;
-      font-weight: bold;
-      text-align: center;
-      color: rgba(255,255,255,0.85);
-      min-height: 1.3rem;
-      z-index: 1;
-      flex-shrink: 0;
+      font-size: clamp(0.78rem, 2vw, 0.92rem);
+      font-family: sans-serif; font-weight: bold; text-align: center;
+      color: rgba(255,255,255,0.8); min-height: 1.2rem;
+      z-index: 1; flex-shrink: 0;
     }
     #status-msg.bust-msg { color: var(--red); }
-    #status-msg.comp-msg { color: rgba(255,255,255,0.55); }
+    #status-msg.comp-msg { color: rgba(255,255,255,0.5); }
 
-    /* ════════════════════════════════════════════════
-       HOLDTE TERNINGER (øverst)
-    ════════════════════════════════════════════════ */
-    #held-area-wrap {
-      width: 100%;
-      z-index: 1;
-      flex-shrink: 0;
-    }
+    /* ── Holdte terninger ── */
+    #held-area-wrap { width: 100%; z-index: 1; flex-shrink: 0; }
     #held-label {
-      font-size: 0.65rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      font-family: sans-serif;
-      opacity: 0.45;
-      text-align: center;
-      margin-bottom: 0.3rem;
+      font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase;
+      font-family: sans-serif; opacity: 0.4; text-align: center; margin-bottom: 0.25rem;
     }
     #held-area {
-      display: flex;
-      gap: clamp(0.4rem, 1.5vw, 0.7rem);
-      align-items: center;
-      justify-content: center;
+      display: flex; gap: clamp(0.3rem, 1.2vw, 0.55rem);
+      align-items: center; justify-content: center;
       min-height: calc(var(--die-size) * 0.75);
-      background: rgba(0,0,0,0.18);
-      border-radius: 14px;
+      background: rgba(0,0,0,0.18); border-radius: 12px;
       border: 1.5px dashed rgba(255,255,255,0.1);
-      padding: 0.4rem 0.6rem;
+      padding: 0.35rem 0.5rem;
     }
     #held-area:empty::after {
       content: 'Ingen holdte terninger';
-      font-family: sans-serif;
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.2);
-      letter-spacing: 1px;
+      font-family: sans-serif; font-size: 0.7rem;
+      color: rgba(255,255,255,0.18); letter-spacing: 1px;
     }
+    #held-area .die { width: calc(var(--die-size) * 0.78); height: calc(var(--die-size) * 0.78); }
 
-    /* Holdte terninger er mindre */
-    #held-area .die {
-      width: calc(var(--die-size) * 0.78);
-      height: calc(var(--die-size) * 0.78);
-    }
-
-    /* Skillelinje */
     .table-divider {
-      width: 90%;
-      height: 1px;
-      background: rgba(255,255,255,0.07);
-      flex-shrink: 0;
-      z-index: 1;
+      width: 90%; height: 1px;
+      background: rgba(255,255,255,0.07); flex-shrink: 0; z-index: 1;
     }
 
-    /* ════════════════════════════════════════════════
-       AKTIVE TERNINGER (kastes)
-    ════════════════════════════════════════════════ */
+    /* ── Aktive terninger ── */
     #dice-area {
-      display: flex;
-      gap: clamp(0.4rem, 1.8vw, 0.9rem);
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      z-index: 1;
-      flex-shrink: 0;
+      display: flex; gap: clamp(0.35rem, 1.6vw, 0.8rem);
+      align-items: center; justify-content: center;
+      flex-wrap: wrap; z-index: 1; flex-shrink: 0;
     }
 
     /* ════════════════════════════════════════════════
        TERNING
     ════════════════════════════════════════════════ */
     .die {
-      width: var(--die-size);
-      height: var(--die-size);
-      border-radius: clamp(10px, 2vw, 15px);
-      position: relative;
-      flex-shrink: 0;
-      cursor: default;
-
-      /* 3D-perspektiv */
-      transform-style: preserve-3d;
-      perspective: 400px;
-
-      /* Hvid top-flade */
+      width: var(--die-size); height: var(--die-size);
+      border-radius: clamp(9px, 1.8vw, 13px);
+      position: relative; flex-shrink: 0; cursor: default;
+      transform-style: preserve-3d; perspective: 400px;
       background: #f8f8f8;
-      box-shadow:
-        0 2px 0 #ccc,           /* bund-kant (tykkelse) */
-        2px 4px 0 #bbb,         /* højre side */
-        0 6px 18px rgba(0,0,0,0.45),
-        inset 0 1px 0 rgba(255,255,255,0.9);
+      box-shadow: 0 2px 0 #ccc, 2px 4px 0 #bbb,
+                  0 6px 18px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.9);
     }
-
-    /* Scoring: grøn glød */
     .die--scoring {
       cursor: pointer;
-      box-shadow:
-        0 2px 0 #1a7a42,
-        2px 4px 0 #157a39,
-        0 6px 18px rgba(39,174,96,0.5),
-        0 0 0 3px var(--green);
+      box-shadow: 0 2px 0 #1a7a42, 2px 4px 0 #157a39,
+                  0 6px 18px rgba(39,174,96,0.5), 0 0 0 3px var(--green);
       animation: scoringPulse 1s ease-in-out infinite alternate;
     }
     @keyframes scoringPulse {
-      from { box-shadow: 0 2px 0 #1a7a42, 2px 4px 0 #157a39, 0 6px 14px rgba(39,174,96,0.4), 0 0 0 3px var(--green); }
-      to   { box-shadow: 0 2px 0 #1a7a42, 2px 4px 0 #157a39, 0 6px 24px rgba(39,174,96,0.75), 0 0 0 4px var(--green); }
+      from { box-shadow: 0 2px 0 #1a7a42,2px 4px 0 #157a39,0 6px 14px rgba(39,174,96,0.4),0 0 0 3px var(--green); }
+      to   { box-shadow: 0 2px 0 #1a7a42,2px 4px 0 #157a39,0 6px 24px rgba(39,174,96,0.75),0 0 0 4px var(--green); }
     }
-
-    /* Holdt (i held-area) */
     .die--held {
       background: #fffbe6;
-      box-shadow:
-        0 2px 0 #a08a00,
-        2px 4px 0 #8a7800,
-        0 6px 16px rgba(241,196,15,0.45),
-        0 0 0 3px var(--gold);
+      box-shadow: 0 2px 0 #a08a00, 2px 4px 0 #8a7800,
+                  0 6px 16px rgba(241,196,15,0.45), 0 0 0 3px var(--gold);
       cursor: pointer;
     }
-
-    /* Rulle-animation — 3D flip */
-    .die--rolling {
-      animation: dieRoll3D 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-
+    .die--rolling { animation: dieRoll3D 0.55s cubic-bezier(0.25,0.46,0.45,0.94); }
     @keyframes dieRoll3D {
-      0%   {
-        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0px);
-      }
-      15%  {
-        transform: rotateX(-40deg) rotateY(30deg) rotateZ(-10deg) translateY(-8px);
-      }
-      35%  {
-        transform: rotateX(180deg) rotateY(-60deg) rotateZ(20deg) translateY(-14px);
-      }
-      55%  {
-        transform: rotateX(270deg) rotateY(45deg) rotateZ(-15deg) translateY(-8px);
-      }
-      75%  {
-        transform: rotateX(330deg) rotateY(-20deg) rotateZ(8deg) translateY(-3px);
-      }
-      88%  {
-        transform: rotateX(355deg) rotateY(5deg) rotateZ(-3deg) translateY(-1px);
-      }
-      100% {
-        transform: rotateX(360deg) rotateY(0deg) rotateZ(0deg) translateY(0px);
-      }
+      0%   { transform: rotateX(0deg)   rotateY(0deg)   rotateZ(0deg)   translateY(0px); }
+      15%  { transform: rotateX(-40deg) rotateY(30deg)  rotateZ(-10deg) translateY(-8px); }
+      35%  { transform: rotateX(180deg) rotateY(-60deg) rotateZ(20deg)  translateY(-14px); }
+      55%  { transform: rotateX(270deg) rotateY(45deg)  rotateZ(-15deg) translateY(-8px); }
+      75%  { transform: rotateX(330deg) rotateY(-20deg) rotateZ(8deg)   translateY(-3px); }
+      88%  { transform: rotateX(355deg) rotateY(5deg)   rotateZ(-3deg)  translateY(-1px); }
+      100% { transform: rotateX(360deg) rotateY(0deg)   rotateZ(0deg)   translateY(0px); }
     }
-
-    /* Terninger der ikke kastes (allerede holdt) hopper blidt */
-    .die--held-bounce {
-      animation: heldBounce 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-    @keyframes heldBounce {
-      0%,100% { transform: translateY(0); }
-      40%     { transform: translateY(-4px); }
-    }
-
-    /* Bust */
-    .die--bust {
-      animation: dieBust 0.55s ease-in-out;
-    }
+    .die--bust { animation: dieBust 0.55s ease-in-out; }
     @keyframes dieBust {
       0%,100% { transform: translate(0,0) rotate(0deg); }
       15%     { transform: translate(-6px,-4px) rotate(-8deg); }
-      35%     { transform: translate(8px, 3px) rotate(10deg); }
-      55%     { transform: translate(-5px, 5px) rotate(-6deg); }
+      35%     { transform: translate(8px,3px) rotate(10deg); }
+      55%     { transform: translate(-5px,5px) rotate(-6deg); }
       75%     { transform: translate(4px,-3px) rotate(5deg); }
     }
+    .die--fly { animation: dieFly 0.32s cubic-bezier(0.4,0,0.2,1) forwards; }
+    @keyframes dieFly { to { transform: translateY(-55px) scale(0.78); opacity: 0; } }
 
-    /* Fly-animation — terning flyver til held-area */
-    .die--fly {
-      animation: dieFly 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
-    @keyframes dieFly {
-      to { transform: translateY(-60px) scale(0.78); opacity: 0; }
-    }
-
-    /* Terningeprikker */
     .die__face {
-      width: 68%;
-      height: 68%;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows:    repeat(3, 1fr);
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
+      width: 68%; height: 68%;
+      display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
       pointer-events: none;
     }
-
     .die__dot {
-      width: clamp(7px, 1.8vw, 11px);
-      height: clamp(7px, 1.8vw, 11px);
-      background: #1a1a1a;
-      border-radius: 50%;
-      align-self: center;
-      justify-self: center;
+      width: clamp(6px,1.6vw,10px); height: clamp(6px,1.6vw,10px);
+      background: #1a1a1a; border-radius: 50%;
+      align-self: center; justify-self: center;
       box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
       pointer-events: none;
     }
-
-    /* Røde prikker på 1'er og 5'er når scoring */
     .die--scoring .die__dot { background: #1a5c2e; }
     .die--held    .die__dot { background: #5c4a00; }
 
-    /* ════════════════════════════════════════════════
-       KNAPPER
-    ════════════════════════════════════════════════ */
+    /* ── Knapper ── */
     #btn-area {
-      display: flex;
-      gap: 0.8rem;
-      width: 100%;
-      z-index: 1;
-      flex-shrink: 0;
+      display: flex; gap: 0.6rem; width: 100%;
+      z-index: 1; flex-shrink: 0;
     }
-
     .game-btn {
-      flex: 1;
-      padding: 0.9rem;
-      border: none;
-      border-radius: 14px;
-      font-size: clamp(1rem, 2.8vw, 1.3rem);
-      font-weight: bold;
-      font-family: sans-serif;
-      cursor: pointer;
-      letter-spacing: 1px;
+      flex: 1; padding: 0.8rem;
+      border: none; border-radius: 12px;
+      font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+      font-weight: bold; font-family: sans-serif;
+      cursor: pointer; letter-spacing: 1px;
       transition: transform 0.1s, opacity 0.2s;
     }
     .game-btn:active   { transform: translateY(2px); }
     .game-btn:disabled { opacity: 0.3; cursor: default; transform: none; }
-
     #btn-roll {
       background: linear-gradient(135deg, var(--gold) 0%, #e67e22 100%);
       color: #1a1a1a;
-      box-shadow: 0 4px 0 var(--gold-dark), 0 6px 16px rgba(241,196,15,0.2);
+      box-shadow: 0 4px 0 var(--gold-dark);
     }
     #btn-stop {
       background: linear-gradient(135deg, var(--green) 0%, #1e8449 100%);
-      color: #fff;
-      box-shadow: 0 4px 0 #1a6b39, 0 6px 16px rgba(39,174,96,0.2);
+      color: #fff; box-shadow: 0 4px 0 #1a6b39;
     }
 
-    /* ════════════════════════════════════════════════
-       BUST-OVERLAY
-    ════════════════════════════════════════════════ */
-    #bust-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(200,0,0,0.15);
-      pointer-events: none;
-      z-index: 200;
-    }
-    #bust-overlay.show {
-      display: block;
-      animation: bustFlash 0.7s ease-out forwards;
-    }
-    @keyframes bustFlash {
-      0%   { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    /* ════════════════════════════════════════════════
-       SCORE-POPUP
-    ════════════════════════════════════════════════ */
-    .score-popup {
-      position: fixed;
-      font-size: 2.4rem;
-      font-weight: 900;
-      color: var(--green);
-      text-shadow: 0 0 16px rgba(39,174,96,0.6);
-      pointer-events: none;
-      z-index: 250;
-      animation: scoreFloat 1.3s ease-out forwards;
-      font-family: sans-serif;
-    }
-    @keyframes scoreFloat {
-      0%   { opacity: 1; transform: translateY(0) scale(1); }
-      60%  { opacity: 1; transform: translateY(-55px) scale(1.2); }
-      100% { opacity: 0; transform: translateY(-100px) scale(0.9); }
-    }
-
-    /* ════════════════════════════════════════════════
-       COMPUTER-INDIKATOR
-    ════════════════════════════════════════════════ */
+    /* ── Computer-indikator ── */
     #comp-thinking {
-      display: none;
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.65);
-      border-radius: 12px;
-      padding: 0.5rem 1.2rem;
-      font-family: sans-serif;
-      font-size: 0.85rem;
-      color: rgba(255,255,255,0.65);
-      letter-spacing: 1px;
-      z-index: 10;
+      display: none; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: rgba(0,0,0,0.65); border-radius: 10px;
+      padding: 0.4rem 1rem;
+      font-family: sans-serif; font-size: 0.8rem;
+      color: rgba(255,255,255,0.6); letter-spacing: 1px; z-index: 10;
     }
     #comp-thinking.show { display: block; }
+
+    /* ════════════════════════════════════════════════
+       OVERLAYS
+    ════════════════════════════════════════════════ */
+    #bust-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(200,0,0,0.15); pointer-events: none; z-index: 200;
+    }
+    #bust-overlay.show { display: block; animation: bustFlash 0.7s ease-out forwards; }
+    @keyframes bustFlash { 0% { opacity:1; } 100% { opacity:0; } }
+
+    .score-popup {
+      position: fixed; font-size: 2.2rem; font-weight: 900;
+      color: var(--green); text-shadow: 0 0 16px rgba(39,174,96,0.6);
+      pointer-events: none; z-index: 250;
+      animation: scoreFloat 1.3s ease-out forwards; font-family: sans-serif;
+    }
+    @keyframes scoreFloat {
+      0%   { opacity:1; transform: translateY(0) scale(1); }
+      60%  { opacity:1; transform: translateY(-55px) scale(1.2); }
+      100% { opacity:0; transform: translateY(-100px) scale(0.9); }
+    }
 
     /* ════════════════════════════════════════════════
        SLUT
     ════════════════════════════════════════════════ */
     #end-screen {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.82);
-      align-items: center;
-      justify-content: center;
-      z-index: 400;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      align-items: center; justify-content: center; z-index: 400;
     }
     #end-screen.show { display: flex; }
-
     #end-box {
-      background: linear-gradient(160deg, #1b2838 0%, #0f1923 100%);
-      border: 2px solid rgba(241,196,15,0.35);
-      border-radius: 28px;
-      padding: 2.5rem 3rem;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-      max-width: 360px;
-      width: 90%;
+      background: linear-gradient(160deg,#1b2838 0%,#0f1923 100%);
+      border: 2px solid rgba(241,196,15,0.35); border-radius: 28px;
+      padding: 2rem 2.5rem; text-align: center;
+      display: flex; flex-direction: column; gap: 1rem;
+      max-width: 380px; width: 92%;
       box-shadow: 0 0 60px rgba(0,0,0,0.9);
     }
-    #end-box h2 { font-size: clamp(1.8rem, 6vw, 2.5rem); color: var(--gold); text-shadow: 0 0 16px rgba(241,196,15,0.4); }
-    #end-box p  { font-size: 1rem; color: rgba(255,255,255,0.6); font-family: sans-serif; }
+    #end-box .trophy { font-size: 3.5rem; }
+    #end-box h2 { font-size: clamp(1.6rem,5vw,2.2rem); color: var(--gold); }
+    #end-box .final-scores { display: flex; flex-direction: column; gap: 0.4rem; }
+    .final-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: sans-serif; font-size: 0.95rem;
+      padding: 0.35rem 0.5rem; border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+    }
+    .final-row.winner { background: rgba(241,196,15,0.12); color: var(--gold); font-weight: bold; }
+    .final-row .fr-name { display: flex; align-items: center; gap: 0.5rem; }
     #play-again-btn {
-      padding: 1rem 2rem;
-      border: none;
-      border-radius: 14px;
+      padding: 0.9rem 2rem; border: none; border-radius: 14px;
       background: linear-gradient(135deg, var(--gold) 0%, #e67e22 100%);
-      color: #1a1a1a;
-      font-size: 1.2rem;
-      font-weight: bold;
-      font-family: sans-serif;
-      cursor: pointer;
-      box-shadow: 0 4px 0 var(--gold-dark);
+      color: #1a1a1a; font-size: 1.1rem; font-weight: bold;
+      font-family: sans-serif; cursor: pointer;
+      box-shadow: 0 4px 0 var(--gold-dark); margin-top: 0.3rem;
     }
 
     @media (max-height: 700px) {
-      :root { --die-size: 58px; }
-      #game-screen { gap: 0.3rem; padding: 0.5rem; }
-      h1 { font-size: 1.1rem; }
-      #table { padding: 0.7rem; }
+      :root { --die-size: 56px; }
+      #game-screen { gap: 0.25rem; padding: 0.4rem 0.7rem; }
+      #table { padding: 0.6rem; gap: 0.3rem; }
     }
   </style>
 </head>
@@ -549,157 +488,356 @@
 <div class="corner-deco br">⚃</div>
 <div id="bust-overlay"></div>
 
-<div id="game-screen">
+<!-- ════════════════════════════════════════════════
+     SETUP SKÆRM
+════════════════════════════════════════════════ -->
+<div id="setup-screen">
+  <h1>🎲 10.000</h1>
 
-  <h1>🎲 Mini 10.000</h1>
-
-  <div id="scoreboard">
-    <div class="score-card active-turn" id="card-nanna">
-      <div class="player-name">Nanna</div>
-      <div class="total-score" id="score-nanna">0</div>
-      <div class="goal-bar-wrap"><div class="goal-bar" id="bar-nanna" style="width:0%"></div></div>
-    </div>
-    <div class="score-card" id="card-comp">
-      <div class="player-name">Computer</div>
-      <div class="total-score" id="score-comp">0</div>
-      <div class="goal-bar-wrap"><div class="goal-bar" id="bar-comp" style="width:0%"></div></div>
+  <div class="setup-section">
+    <div class="setup-label">Vælg variant</div>
+    <div class="variant-grid">
+      <button class="variant-btn selected" data-variant="mini" onclick="selectVariant('mini')">
+        <span class="v-emoji">🎯</span>
+        <span class="v-name">Mini</span>
+        <span class="v-goal">Mål: 500 point</span>
+      </button>
+      <button class="variant-btn" data-variant="classic" onclick="selectVariant('classic')">
+        <span class="v-emoji">🏆</span>
+        <span class="v-name">Klassisk</span>
+        <span class="v-goal">Mål: 10.000 point</span>
+      </button>
     </div>
   </div>
 
-  <div id="table">
-    <div id="comp-thinking">Computer tænker...</div>
+  <div class="setup-section">
+    <div class="setup-label">Spillere</div>
+    <div class="player-rows" id="player-rows"></div>
+    <div style="display:flex;justify-content:center;margin-top:0.4rem">
+      <button class="add-player-btn" onclick="addPlayer()" title="Tilføj spiller">＋</button>
+    </div>
+  </div>
 
-    <!-- Tur-point -->
+  <button id="start-btn" onclick="startGame()">Start spil →</button>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     SPIL SKÆRM
+════════════════════════════════════════════════ -->
+<div id="game-screen">
+
+  <div id="game-header">
+    <div id="game-title">🎲 10.000</div>
+    <button id="menu-btn" onclick="goToSetup()">◀ Menu</button>
+  </div>
+
+  <div id="scoreboard"></div>
+
+  <div id="table">
+    <div id="comp-thinking">Tænker...</div>
+
+    <div id="active-player-banner">Det er <span id="active-name"></span>s tur</div>
+
     <div id="turn-score-area">
       <div id="turn-label">Point denne tur</div>
       <div id="turn-score">0</div>
     </div>
 
-    <!-- Status -->
-    <div id="status-msg">Tryk Kast! for at starte</div>
+    <div id="scoring-info"></div>
+    <div id="status-msg"></div>
 
-    <!-- Holdte terninger -->
     <div id="held-area-wrap">
       <div id="held-label">Holdte terninger</div>
       <div id="held-area"></div>
     </div>
 
     <div class="table-divider"></div>
-
-    <!-- Aktive terninger -->
     <div id="dice-area"></div>
 
-    <!-- Knapper -->
     <div id="btn-area">
       <button class="game-btn" id="btn-roll">🎲 Kast!</button>
-      <button class="game-btn" id="btn-stop" disabled>✋ Stop!</button>
+      <button class="game-btn" id="btn-stop" disabled>✋ Stop</button>
     </div>
-
   </div>
 </div>
 
 <div id="end-screen">
   <div id="end-box">
+    <div class="trophy">🏆</div>
     <h2 id="end-title"></h2>
-    <p id="end-detail"></p>
-    <button id="play-again-btn">Spil igen 🎲</button>
+    <div class="final-scores" id="final-scores"></div>
+    <button id="play-again-btn" onclick="goToSetup()">Spil igen 🎲</button>
   </div>
 </div>
 
 <script src="dice.js"></script>
 <script>
 // ══════════════════════════════════════════════════════
-// KONSTANTER
+// KONFIGURATION
 // ══════════════════════════════════════════════════════
-const GOAL         = 500;
-const COMP_STOP_AT = 150;
+const PLAYER_COLORS = ['#e74c3c','#3498db','#2ecc71','#9b59b6'];
+const DEFAULT_NAMES = ['Nanna','Computer','Spiller 3','Spiller 4'];
+const COMP_STOP_AT  = { mini: 150, classic: 400 };
+
+// ── Scoring: klassisk 10.000 ──
+// Returnerer et objekt: { points, scoringIds: Set }
+function scoreClassic(dice) {
+  // dice = [{id, value}, ...]
+  const vals   = dice.map(d => d.value);
+  const counts = {};
+  for (const v of vals) counts[v] = (counts[v] || 0) + 1;
+
+  // Sekvens 1-2-3-4-5-6
+  const sorted = [...vals].sort((a,b)=>a-b).join('');
+  if (sorted === '123456') return { points: 1500, scoringIds: new Set(dice.map(d => d.id)) };
+
+  // Tre par
+  const pairs = Object.values(counts).filter(c => c >= 2);
+  if (pairs.length === 3 && vals.length === 6) {
+    return { points: 750, scoringIds: new Set(dice.map(d => d.id)) };
+  }
+
+  let points = 0;
+  const scoringIds = new Set();
+
+  for (const [valStr, count] of Object.entries(counts)) {
+    const val = parseInt(valStr);
+    if (count >= 3) {
+      const base = val === 1 ? 1000 : val * 100;
+      const mult = Math.pow(2, count - 3);
+      points += base * mult;
+      // Markér ALLE terninger med denne værdi som scoring
+      let marked = 0;
+      for (const d of dice) {
+        if (d.value === val) { scoringIds.add(d.id); marked++; }
+      }
+    } else {
+      if (val === 1) {
+        points += count * 100;
+        for (const d of dice) if (d.value === 1) scoringIds.add(d.id);
+      }
+      if (val === 5) {
+        points += count * 50;
+        for (const d of dice) if (d.value === 5) scoringIds.add(d.id);
+      }
+    }
+  }
+
+  return { points, scoringIds };
+}
+
+function scoringLabelClassic(dice) {
+  // Returnerer en læsbar forklaring af scoren
+  const vals   = dice.map(d => d.value);
+  const counts = {};
+  for (const v of vals) counts[v] = (counts[v] || 0) + 1;
+  const sorted = [...vals].sort((a,b)=>a-b).join('');
+  if (sorted === '123456') return '1-2-3-4-5-6 sekvens! 🎯';
+  const pairs = Object.values(counts).filter(c => c >= 2);
+  if (pairs.length === 3 && vals.length === 6) return 'Tre par!';
+  const parts = [];
+  for (const [valStr, count] of Object.entries(counts)) {
+    const val = parseInt(valStr);
+    if (count >= 3) {
+      const names = {1:'ettere',2:'toere',3:'treere',4:'firere',5:'femmere',6:'seksere'};
+      parts.push(`${count}× ${names[val]}`);
+    } else {
+      if (val === 1) parts.push(`${count}× etter (${count*100}pt)`);
+      if (val === 5) parts.push(`${count}× femmer (${count*50}pt)`);
+    }
+  }
+  return parts.join(' · ');
+}
 
 // ══════════════════════════════════════════════════════
-// TILSTAND
+// SETUP STATE
 // ══════════════════════════════════════════════════════
-let nannaTotal  = 0;
-let compTotal   = 0;
-let turnScore   = 0;
-let currentTurn = 'nanna';
+let setupVariant = 'mini';
+let setupPlayers = [
+  { name: 'Nanna',    isComp: false },
+  { name: 'Computer', isComp: true  },
+];
 
-// activeDice: terninger der er "på bordet" (ikke holdt endnu)
-// heldDice:   terninger der er bekræftet holdt denne tur
-let activeDice  = [];  // {id, value, held:false}
-let heldDice    = [];  // {id, value, held:true}
+function selectVariant(v) {
+  setupVariant = v;
+  document.querySelectorAll('.variant-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.variant === v);
+  });
+}
 
-let busy        = false;
-let hasRolled   = false;
-let canHold     = false; // Om Nanna må trykke på terninger
+function renderSetupPlayers() {
+  const rows = document.getElementById('player-rows');
+  rows.innerHTML = '';
+  setupPlayers.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <div class="player-color-dot" style="background:${PLAYER_COLORS[i]}"></div>
+      <input class="player-name-input" type="text" value="${p.name}"
+             placeholder="Navn" maxlength="12"
+             oninput="setupPlayers[${i}].name = this.value.trim() || '${p.name}'">
+      <label style="display:flex;align-items:center;gap:0.35rem;font-family:sans-serif;font-size:0.78rem;color:rgba(255,255,255,0.4);white-space:nowrap;cursor:pointer;">
+        <input type="checkbox" ${p.isComp ? 'checked' : ''} onchange="setupPlayers[${i}].isComp = this.checked"
+               style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">
+        PC
+      </label>
+      ${setupPlayers.length > 2 ? `<button class="remove-player-btn" onclick="removePlayer(${i})">✕</button>` : '<div style="width:34px"></div>'}
+    `;
+    rows.appendChild(row);
+  });
+}
+
+function addPlayer() {
+  if (setupPlayers.length >= 4) return;
+  const i = setupPlayers.length;
+  setupPlayers.push({ name: DEFAULT_NAMES[i], isComp: false });
+  renderSetupPlayers();
+}
+
+function removePlayer(i) {
+  if (setupPlayers.length <= 2) return;
+  setupPlayers.splice(i, 1);
+  renderSetupPlayers();
+}
+
+renderSetupPlayers();
 
 // ══════════════════════════════════════════════════════
-// DOM
+// SPIL STATE
 // ══════════════════════════════════════════════════════
-const btnRoll      = document.getElementById('btn-roll');
-const btnStop      = document.getElementById('btn-stop');
+let variant    = 'mini';
+let GOAL       = 500;
+let players    = [];   // [{name, isComp, total, color}]
+let turnIdx    = 0;
+let turnScore  = 0;
+let activeDice = [];
+let heldDice   = [];
+let busy       = false;
+let hasRolled  = false;
+let canHold    = false;
+let gameOver   = false;
+
+// ── DOM ──
+const setupScreen  = document.getElementById('setup-screen');
+const gameScreen   = document.getElementById('game-screen');
+const scoreboard   = document.getElementById('scoreboard');
 const diceArea     = document.getElementById('dice-area');
 const heldArea     = document.getElementById('held-area');
 const turnScoreEl  = document.getElementById('turn-score');
 const statusEl     = document.getElementById('status-msg');
+const scoringInfo  = document.getElementById('scoring-info');
+const activeName   = document.getElementById('active-name');
 const compThinking = document.getElementById('comp-thinking');
 const bustOverlay  = document.getElementById('bust-overlay');
 const endScreen    = document.getElementById('end-screen');
+const btnRoll      = document.getElementById('btn-roll');
+const btnStop      = document.getElementById('btn-stop');
 
 btnRoll.addEventListener('click', onRoll);
 btnStop.addEventListener('click', onStop);
-document.getElementById('play-again-btn').addEventListener('click', restartGame);
 
-// Event delegation — ét listener på hele dice-area, håndterer alle terning-klik
-diceArea.addEventListener('click', (e) => {
-  const dieEl = e.target.closest('.die');
-  if (!dieEl) return;
-  const dieId = parseInt(dieEl.dataset.dieId);
-  if (isNaN(dieId)) return;
-  const die = activeDice.find(d => d.id === dieId);
+// Event delegation — ét listener pr. zone
+diceArea.addEventListener('click', e => {
+  const el = e.target.closest('.die');
+  if (!el) return;
+  const id = parseInt(el.dataset.dieId);
+  if (isNaN(id)) return;
+  const die = activeDice.find(d => d.id === id);
   if (die) holdDie(die);
 });
-
-heldArea.addEventListener('click', (e) => {
-  const dieEl = e.target.closest('.die');
-  if (!dieEl) return;
-  const dieId = parseInt(dieEl.dataset.dieId);
-  if (isNaN(dieId)) return;
-  const die = heldDice.find(d => d.id === dieId);
+heldArea.addEventListener('click', e => {
+  const el = e.target.closest('.die');
+  if (!el) return;
+  const id = parseInt(el.dataset.dieId);
+  if (isNaN(id)) return;
+  const die = heldDice.find(d => d.id === id);
   if (die) unholdDie(die);
 });
 
 // ══════════════════════════════════════════════════════
-// START
+// START / MENU
 // ══════════════════════════════════════════════════════
-function restartGame() {
-  nannaTotal  = 0; compTotal = 0; turnScore = 0;
-  currentTurn = 'nanna';
-  activeDice  = []; heldDice = [];
-  busy = false; hasRolled = false; canHold = false;
+function startGame() {
+  variant = setupVariant;
+  GOAL    = variant === 'mini' ? 500 : 10000;
 
+  players = setupPlayers.map((p, i) => ({
+    name:   p.name || DEFAULT_NAMES[i],
+    isComp: p.isComp,
+    total:  0,
+    color:  PLAYER_COLORS[i],
+  }));
+
+  turnIdx   = 0;
+  gameOver  = false;
+
+  document.getElementById('game-title').textContent =
+    variant === 'mini' ? '🎲 Mini 10.000' : '🏆 Klassisk 10.000';
+
+  setupScreen.style.display = 'none';
+  gameScreen.classList.add('show');
   endScreen.classList.remove('show');
-  updateScoreboard();
+
+  buildScoreboard();
+  beginTurn();
+}
+
+function goToSetup() {
+  gameScreen.classList.remove('show');
+  endScreen.classList.remove('show');
+  setupScreen.style.display = '';
+  renderSetupPlayers();
+}
+
+// ══════════════════════════════════════════════════════
+// TUR-HÅNDTERING
+// ══════════════════════════════════════════════════════
+function beginTurn() {
+  turnScore  = 0;
+  activeDice = [];
+  heldDice   = [];
+  busy       = false;
+  hasRolled  = false;
+  canHold    = false;
+
   renderActiveDice([]);
   renderHeldDice([]);
   setTurnScore(0);
-  setStatus('Tryk Kast! for at starte');
-  setActiveTurn('nanna');
-  btnRoll.disabled = false;
-  btnStop.disabled = true;
+  setScoringInfo('');
+  setActiveTurn(turnIdx);
+
+  const p = players[turnIdx];
+  activeName.textContent = p.name;
+
+  if (p.isComp) {
+    btnRoll.disabled = true;
+    btnStop.disabled = true;
+    setStatus(`${p.name} spiller...`, 'comp-msg');
+    setTimeout(() => compPlayTurn(), 800);
+  } else {
+    btnRoll.disabled = false;
+    btnStop.disabled = true;
+    setStatus('Tryk Kast! for at starte');
+  }
 }
 
-restartGame();
+function nextTurn() {
+  turnIdx = (turnIdx + 1) % players.length;
+  beginTurn();
+}
 
 // ══════════════════════════════════════════════════════
-// KAST (Nanna)
+// KAST (menneskelig spiller)
 // ══════════════════════════════════════════════════════
 async function onRoll() {
-  if (busy || currentTurn !== 'nanna') return;
-  busy     = true;
-  canHold  = false;
+  const p = players[turnIdx];
+  if (busy || p.isComp) return;
+  busy    = true;
+  canHold = false;
   btnRoll.disabled = true;
   btnStop.disabled = true;
 
-  // Hot dice: hvis alle 6 er holdt, nulstil og kast alle 6 igen
+  // Hot dice
   if (heldDice.length === 6) {
     heldDice = [];
     renderHeldDice([]);
@@ -707,95 +845,93 @@ async function onRoll() {
     await wait(400);
   }
 
-  // Kast kun de ikke-holdte terninger (6 - antal holdte)
   const numToRoll = 6 - heldDice.length;
-  const newRolled = rollFresh(numToRoll, heldDice.length); // id'er starter efter holdte
-  activeDice = newRolled;
+  activeDice = rollFresh(numToRoll, heldDice.length);
   hasRolled  = true;
 
-  // Animer
   renderActiveDice(activeDice, true);
   await wait(600);
 
-  // Find hvilke af de nye terninger der er pointgivende
-  const scoringIds = scoringDiceIdsMini(activeDice);
-  const newPoints  = scoreRollMini(activeDice);
+  const { points, scoringIds, label } = getScoreInfo(activeDice);
 
-  if (newPoints === 0) {
-    await doBust();
-    return;
-  }
+  if (points === 0) { await doBust(); return; }
 
-  // Markér scoring-terninger, lad Nanna vælge hvad hun vil holde
-  renderActiveDiceWithScoring(activeDice);
-  setStatus('Tryk på de grønne terninger for at holde dem — kast resten igen eller stop');
+  renderActiveDiceWithScoring(activeDice, scoringIds);
+  setScoringInfo(label);
+  setStatus('Tryk på de grønne terninger for at holde dem');
   canHold = true;
 
-  // Tur-score vises ikke endnu — kun når hun har valgt og trykker
   btnRoll.disabled = false;
-  btnStop.disabled = false;
+  btnStop.disabled = (heldDice.length === 0); // kræver mindst én holdt
   busy = false;
 }
 
-// Kast n friske terninger med id'er der starter ved startId
-function rollFresh(n, startId) {
-  const result = [];
-  for (let i = 0; i < n; i++) {
-    result.push({ id: startId + i, value: Math.floor(Math.random() * 6) + 1, held: false });
-  }
-  return result;
+// ══════════════════════════════════════════════════════
+// HOLD / AFHOLD
+// ══════════════════════════════════════════════════════
+function holdDie(die) {
+  if (!canHold || players[turnIdx].isComp) return;
+  const { scoringIds } = getScoreInfo(activeDice);
+  if (!scoringIds.has(die.id)) return;
+
+  const dieEl = diceArea.querySelector(`[data-die-id="${die.id}"]`);
+  if (dieEl) dieEl.classList.add('die--fly');
+
+  setTimeout(() => {
+    activeDice = activeDice.filter(d => d.id !== die.id);
+    heldDice.push({ ...die, held: true });
+    turnScore = calcTurnScore(heldDice);
+    setTurnScore(turnScore);
+
+    renderActiveDiceWithScoring(activeDice, getScoreInfo(activeDice).scoringIds);
+    renderHeldDice(heldDice);
+    setScoringInfo(getScoreInfo(activeDice).label);
+
+    // Stop-knap aktiv når mindst én terning er holdt
+    btnStop.disabled = false;
+
+    if (activeDice.length === 0)
+      setStatus('Alle holdt! 🔥 Kast igen (alle 6) eller stop');
+    else
+      setStatus('Tryk på grønne terninger — eller kast/stop');
+  }, 300);
 }
 
-// ══════════════════════════════════════════════════════
-// HOLD TERNING (klik)
-// ══════════════════════════════════════════════════════
-function onDieClick(die, scoringIds) {
-  if (!canHold || currentTurn !== 'nanna') return;
-  if (!scoringIds.has(die.id)) return; // kun scoring-terninger må holdes
-
-  // Flyt fra active til held
-  activeDice = activeDice.filter(d => d.id !== die.id);
-  heldDice.push({ ...die, held: true });
-
-  // Opdater turn-score med alle holdte terningers værdi
-  turnScore = scoreRollMini(heldDice);
+function unholdDie(die) {
+  if (!canHold || players[turnIdx].isComp) return;
+  heldDice   = heldDice.filter(d => d.id !== die.id);
+  activeDice.push({ ...die, held: false });
+  turnScore = calcTurnScore(heldDice);
   setTurnScore(turnScore);
 
-  // Genrender begge områder
-  const remainingScoring = scoringDiceIdsMini(activeDice);
-  renderActiveDiceWithScoring(activeDice);
+  const { scoringIds, label } = getScoreInfo(activeDice);
+  renderActiveDiceWithScoring(activeDice, scoringIds);
   renderHeldDice(heldDice);
-
-  if (activeDice.length === 0) {
-    setStatus('Alle terninger holdt! Kast igen (alle 6) eller stop');
-  } else if (activeDice.filter(d => !remainingScoring.has(d.id)).length === activeDice.length) {
-    setStatus('Ingen flere pointgivende — kast igen eller stop');
-  } else {
-    setStatus('Tryk på flere grønne terninger — eller kast/stop');
-  }
+  setScoringInfo(label);
+  btnStop.disabled = heldDice.length === 0;
+  setStatus('Tryk på grønne terninger — eller kast/stop');
 }
 
 // ══════════════════════════════════════════════════════
-// STOP (Nanna)
+// STOP
 // ══════════════════════════════════════════════════════
 async function onStop() {
-  if (busy || currentTurn !== 'nanna' || !hasRolled) return;
-  if (heldDice.length === 0 && turnScore === 0) return; // intet at banke
+  const p = players[turnIdx];
+  if (busy || p.isComp || !hasRolled || heldDice.length === 0) return;
   busy    = true;
   canHold = false;
   btnRoll.disabled = true;
   btnStop.disabled = true;
 
   const banked = turnScore;
-  nannaTotal += banked;
-  showScorePopup(banked);
+  p.total += banked;
+  showScorePopup(banked, turnIdx);
   updateScoreboard();
-  setStatus(`Nanna banker ${banked} point! 🎉`);
+  setStatus(`${p.name} banker ${banked} point! 🎉`);
+  await wait(900);
 
-  await wait(1000);
-
-  if (nannaTotal >= GOAL) { endGame('nanna'); return; }
-  await startCompTurn();
+  if (p.total >= GOAL) { endGame(); return; }
+  nextTurn();
 }
 
 // ══════════════════════════════════════════════════════
@@ -806,6 +942,7 @@ async function doBust() {
   renderActiveDiceBust(activeDice);
   bustOverlay.classList.add('show');
   setTurnScore(0, true);
+  setScoringInfo('');
   setStatus('BUST! Mister alle point for denne tur 😬', 'bust-msg');
 
   await wait(100);
@@ -819,75 +956,68 @@ async function doBust() {
   renderActiveDice([]);
   renderHeldDice([]);
   setTurnScore(0);
-
-  if (currentTurn === 'nanna') {
-    await wait(400);
-    await startCompTurn();
-  } else {
-    endCompTurn();
-  }
+  await wait(300);
+  nextTurn();
 }
 
 // ══════════════════════════════════════════════════════
 // COMPUTER-TUR
 // ══════════════════════════════════════════════════════
-async function startCompTurn() {
-  currentTurn = 'comp';
-  turnScore   = 0;
-  hasRolled   = false;
-  activeDice  = [];
-  heldDice    = [];
-  setActiveTurn('comp');
-  setStatus('Computerens tur...', 'comp-msg');
-  setTurnScore(0);
-  renderActiveDice([]);
-  renderHeldDice([]);
-  await wait(700);
-  await compPlayTurn();
-}
-
 async function compPlayTurn() {
+  const p = players[turnIdx];
+  turnScore  = 0;
+  activeDice = [];
+  heldDice   = [];
+  hasRolled  = false;
+
+  const stopAt = COMP_STOP_AT[variant];
+
   while (true) {
     compThinking.classList.add('show');
     await wait(500 + Math.random() * 400);
     compThinking.classList.remove('show');
 
-    // Kast de resterende (ikke-holdte)
+    if (heldDice.length === 6) {
+      // Hot dice — kast alle igen
+      heldDice = [];
+      renderHeldDice([]);
+      await wait(300);
+    }
+
     const numToRoll = 6 - heldDice.length;
     activeDice = rollFresh(numToRoll, heldDice.length);
     hasRolled  = true;
     renderActiveDice(activeDice, true);
     await wait(650);
 
-    const scoringIds = scoringDiceIdsMini(activeDice);
-    const newPoints  = scoreRollMini(activeDice);
-
-    if (newPoints === 0) {
-      setStatus('Computer bustede! 😬', 'comp-msg');
+    const { points, scoringIds } = getScoreInfo(activeDice);
+    if (points === 0) {
+      setStatus(`${p.name} bustede! 😬`, 'comp-msg');
       await doBust();
       return;
     }
 
-    // Computer holder alle scoring-terninger automatisk
+    // Computeren holder ALLE scoring-terninger
     const scoringDice = activeDice.filter(d => scoringIds.has(d.id));
     heldDice.push(...scoringDice.map(d => ({ ...d, held: true })));
     activeDice = activeDice.filter(d => !scoringIds.has(d.id));
-    turnScore  = scoreRollMini(heldDice);
+    turnScore  = calcTurnScore(heldDice);
 
-    renderActiveDiceWithScoring(activeDice);
+    renderActiveDiceWithScoring(activeDice, new Set());
     renderHeldDice(heldDice);
     setTurnScore(turnScore);
-    setStatus(`Computer: +${newPoints} (${turnScore} i alt)`, 'comp-msg');
+    setStatus(`${p.name}: +${points} (${turnScore} i alt)`, 'comp-msg');
     await wait(900);
 
-    const wouldTotal = compTotal + turnScore;
-    if (turnScore >= COMP_STOP_AT || wouldTotal >= GOAL) {
-      compTotal += turnScore;
-      setStatus(`Computer stopper med ${turnScore} point`, 'comp-msg');
+    const wouldTotal = p.total + turnScore;
+    if (turnScore >= stopAt || wouldTotal >= GOAL) {
+      p.total += turnScore;
+      setStatus(`${p.name} stopper med ${turnScore} point`, 'comp-msg');
+      showScorePopup(turnScore, turnIdx);
       updateScoreboard();
       await wait(800);
-      if (compTotal >= GOAL) { endGame('comp'); return; }
-      endCompTurn();
+      if (p.total >= GOAL) { endGame(); return; }
+      nextTurn();
       return;
     }
 
@@ -895,64 +1025,78 @@ async function compPlayTurn() {
   }
 }
 
-function endCompTurn() {
-  currentTurn = 'nanna';
-  turnScore   = 0;
-  hasRolled   = false;
-  activeDice  = [];
-  heldDice    = [];
-  canHold     = false;
-  renderActiveDice([]);
-  renderHeldDice([]);
-  setTurnScore(0);
-  setActiveTurn('nanna');
-  setStatus('Din tur! Tryk Kast!');
-  btnRoll.disabled = false;
-  btnStop.disabled = true;
-  busy = false;
-}
-
 // ══════════════════════════════════════════════════════
 // SLUT
 // ══════════════════════════════════════════════════════
-function checkEnd() {
-  if (nannaTotal >= GOAL) { endGame('nanna'); return true; }
-  if (compTotal  >= GOAL) { endGame('comp');  return true; }
-  return false;
-}
-
-function endGame(winner) {
-  busy = true;
+function endGame() {
+  gameOver = true;
+  busy     = true;
   btnRoll.disabled = true;
   btnStop.disabled = true;
-  const title  = winner === 'nanna' ? '🎉 Nanna vinder!' : 'Computer vinder!';
-  const detail = winner === 'nanna' ? `Nanna nåede ${nannaTotal} point!` : `Computer nåede ${compTotal} point.`;
-  document.getElementById('end-title').textContent  = title;
-  document.getElementById('end-detail').textContent = detail;
-  setTimeout(() => endScreen.classList.add('show'), 700);
+
+  const winner = players.reduce((a, b) => a.total > b.total ? a : b);
+  document.getElementById('end-title').textContent = `${winner.name} vinder! 🎉`;
+
+  const fs = document.getElementById('final-scores');
+  fs.innerHTML = '';
+  [...players].sort((a,b) => b.total - a.total).forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'final-row' + (p === winner ? ' winner' : '');
+    row.innerHTML = `
+      <div class="fr-name">
+        <div style="width:10px;height:10px;border-radius:50%;background:${p.color}"></div>
+        ${p.name}
+      </div>
+      <div>${p.total} pt</div>
+    `;
+    fs.appendChild(row);
+  });
+
+  setTimeout(() => endScreen.classList.add('show'), 600);
 }
 
 // ══════════════════════════════════════════════════════
-// UI — RENDER
+// SCORING HELPERS
 // ══════════════════════════════════════════════════════
+function getScoreInfo(dice) {
+  if (variant === 'mini') {
+    const ids = new Set();
+    for (const d of dice) if (d.value === 1 || d.value === 5) ids.add(d.id);
+    const pts = scoreRollMini(dice);
+    const parts = [];
+    const ones = dice.filter(d=>d.value===1).length;
+    const fives = dice.filter(d=>d.value===5).length;
+    if (ones)  parts.push(`${ones}× etter (${ones*100}pt)`);
+    if (fives) parts.push(`${fives}× femmer (${fives*50}pt)`);
+    return { points: pts, scoringIds: ids, label: parts.join(' · ') };
+  } else {
+    const res = scoreClassic(dice);
+    const label = res.points > 0 ? scoringLabelClassic(dice) : '';
+    return { points: res.points, scoringIds: res.scoringIds, label };
+  }
+}
 
+function calcTurnScore(dice) {
+  if (variant === 'mini') return scoreRollMini(dice);
+  return scoreClassic(dice).points;
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════
 function makeDieEl(die, cssClass = '') {
   const el = document.createElement('div');
   el.classList.add('die');
   if (cssClass) el.classList.add(cssClass);
-  el.dataset.dieId = die.id; // bruges af event delegation
+  el.dataset.dieId = die.id;
 
-  // Prikker
+  const DOT_POSITIONS = {
+    1:[[1,1]], 2:[[0,0],[2,2]], 3:[[0,0],[1,1],[2,2]],
+    4:[[0,0],[0,2],[2,0],[2,2]], 5:[[0,0],[0,2],[1,1],[2,0],[2,2]],
+    6:[[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
+  };
   const face = document.createElement('div');
   face.classList.add('die__face');
-  const DOT_POSITIONS = {
-    1: [[1,1]],
-    2: [[0,0],[2,2]],
-    3: [[0,0],[1,1],[2,2]],
-    4: [[0,0],[0,2],[2,0],[2,2]],
-    5: [[0,0],[0,2],[1,1],[2,0],[2,2]],
-    6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
-  };
   for (const [r,c] of (DOT_POSITIONS[die.value] || [])) {
     const dot = document.createElement('div');
     dot.classList.add('die__dot');
@@ -964,126 +1108,111 @@ function makeDieEl(die, cssClass = '') {
   return el;
 }
 
-function renderActiveDice(diceArr, rolling = false) {
+function renderActiveDice(arr, rolling = false) {
   diceArea.innerHTML = '';
-  const count = diceArr.length || 6 - heldDice.length;
-  if (diceArr.length === 0) {
+  const count = arr.length || (6 - heldDice.length);
+  if (arr.length === 0) {
     for (let i = 0; i < count; i++) {
       const ph = document.createElement('div');
-      ph.classList.add('die');
-      ph.style.opacity = '0.15';
+      ph.classList.add('die'); ph.style.opacity = '0.15';
       diceArea.appendChild(ph);
     }
     return;
   }
-  for (const d of diceArr) {
+  for (const d of arr) {
     const el = makeDieEl(d, rolling ? 'die--rolling' : '');
-    // Tilfældig animation-forsinkelse for mere naturligt look
     if (rolling) el.style.animationDelay = (Math.random() * 0.12) + 's';
     diceArea.appendChild(el);
   }
 }
 
-function renderActiveDiceWithScoring(diceArr) {
+function renderActiveDiceWithScoring(arr, scoringIds) {
   diceArea.innerHTML = '';
-  const currentScoringIds = scoringDiceIdsMini(diceArr);
-  for (const d of diceArr) {
-    const isScoring = currentScoringIds.has(d.id);
-    const el = makeDieEl(d, isScoring ? 'die--scoring' : '');
-    diceArea.appendChild(el);
+  for (const d of arr) {
+    const isScoring = scoringIds.has(d.id);
+    diceArea.appendChild(makeDieEl(d, isScoring ? 'die--scoring' : ''));
   }
 }
 
-function holdDie(die) {
-  if (!canHold || currentTurn !== 'nanna') return;
-  // Kun scoring-terninger må holdes
-  const scoringIds = scoringDiceIdsMini(activeDice);
-  if (!scoringIds.has(die.id)) return;
-
-  // Fly-animation på det rigtige element
-  const dieEl = diceArea.querySelector(`[data-die-id="${die.id}"]`);
-  if (dieEl) dieEl.classList.add('die--fly');
-
-  setTimeout(() => {
-    activeDice = activeDice.filter(d => d.id !== die.id);
-    heldDice.push({ ...die, held: true });
-    turnScore = scoreRollMini(heldDice);
-    setTurnScore(turnScore);
-
-    renderActiveDiceWithScoring(activeDice);
-    renderHeldDice(heldDice);
-
-    if (activeDice.length === 0) {
-      setStatus('Alle terninger holdt! Kast igen (alle 6) eller stop');
-    } else {
-      setStatus('Tryk på grønne terninger — eller kast/stop');
-    }
-  }, 320);
-}
-
-function renderHeldDice(diceArr) {
+function renderHeldDice(arr) {
   heldArea.innerHTML = '';
-  for (const d of diceArr) {
-    const el = makeDieEl(d, 'die--held');
-    heldArea.appendChild(el);
-  }
+  for (const d of arr) heldArea.appendChild(makeDieEl(d, 'die--held'));
 }
 
-function unholdDie(die) {
-  if (!canHold || currentTurn !== 'nanna') return;
-  heldDice   = heldDice.filter(d => d.id !== die.id);
-  activeDice.push({ ...die, held: false });
-  turnScore  = scoreRollMini(heldDice);
-  setTurnScore(turnScore);
-
-  const scoring = scoringDiceIdsMini(activeDice);
-  renderActiveDiceWithScoring(activeDice);
-  renderHeldDice(heldDice);
-  setStatus('Tryk på grønne terninger — eller kast/stop');
-}
-
-function renderActiveDiceBust(diceArr) {
+function renderActiveDiceBust(arr) {
   diceArea.innerHTML = '';
-  for (const d of diceArr) {
-    const el = makeDieEl(d, 'die--bust');
-    diceArea.appendChild(el);
-  }
+  for (const d of arr) diceArea.appendChild(makeDieEl(d, 'die--bust'));
 }
 
 // ══════════════════════════════════════════════════════
-// UI — SCORE OG STATUS
+// SCOREBOARD
+// ══════════════════════════════════════════════════════
+function buildScoreboard() {
+  scoreboard.innerHTML = '';
+  players.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'score-card';
+    card.id = `sc-${i}`;
+    card.innerHTML = `
+      <div class="player-dot" style="background:${p.color}"></div>
+      <div class="player-name">${p.name}</div>
+      <div class="total-score" id="sc-total-${i}">0</div>
+      <div class="goal-bar-wrap"><div class="goal-bar" id="sc-bar-${i}" style="width:0%"></div></div>
+    `;
+    scoreboard.appendChild(card);
+  });
+}
+
+function updateScoreboard() {
+  players.forEach((p, i) => {
+    document.getElementById(`sc-total-${i}`).textContent = p.total;
+    document.getElementById(`sc-bar-${i}`).style.width =
+      Math.min(p.total / GOAL * 100, 100) + '%';
+  });
+}
+
+function setActiveTurn(idx) {
+  players.forEach((_, i) => {
+    document.getElementById(`sc-${i}`)?.classList.toggle('active-turn', i === idx);
+  });
+  activeName.textContent = players[idx]?.name || '';
+}
+
+// ══════════════════════════════════════════════════════
+// STATUS / UI HELPERS
 // ══════════════════════════════════════════════════════
 function setTurnScore(val, isBust = false) {
   turnScoreEl.textContent = val;
   turnScoreEl.className   = isBust ? 'bust' : '';
 }
-
 function setStatus(msg, cssClass = '') {
   statusEl.textContent = msg;
   statusEl.className   = cssClass;
 }
+function setScoringInfo(msg) { scoringInfo.textContent = msg; }
 
-function setActiveTurn(who) {
-  document.getElementById('card-nanna').classList.toggle('active-turn', who === 'nanna');
-  document.getElementById('card-comp').classList.toggle('active-turn',  who === 'comp');
-}
-
-function updateScoreboard() {
-  document.getElementById('score-nanna').textContent = nannaTotal;
-  document.getElementById('score-comp').textContent  = compTotal;
-  document.getElementById('bar-nanna').style.width   = Math.min(nannaTotal / GOAL * 100, 100) + '%';
-  document.getElementById('bar-comp').style.width    = Math.min(compTotal  / GOAL * 100, 100) + '%';
-}
-
-function showScorePopup(points) {
+function showScorePopup(pts, playerIdx) {
   const popup = document.createElement('div');
   popup.classList.add('score-popup');
-  popup.textContent = `+${points}`;
-  const rect = document.getElementById('card-nanna').getBoundingClientRect();
-  popup.style.left = rect.left + rect.width / 2 - 40 + 'px';
-  popup.style.top  = rect.top  - 10 + 'px';
+  popup.textContent = `+${pts}`;
+  const card = document.getElementById(`sc-${playerIdx}`);
+  if (card) {
+    const rect = card.getBoundingClientRect();
+    popup.style.left = rect.left + rect.width / 2 - 35 + 'px';
+    popup.style.top  = rect.top - 5 + 'px';
+  }
   document.body.appendChild(popup);
   setTimeout(() => popup.remove(), 1300);
+}
+
+// ══════════════════════════════════════════════════════
+// HJÆLPEFUNKTIONER
+// ══════════════════════════════════════════════════════
+function rollFresh(n, startId) {
+  const result = [];
+  for (let i = 0; i < n; i++)
+    result.push({ id: startId + i, value: Math.floor(Math.random() * 6) + 1, held: false });
+  return result;
 }
 
 function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
