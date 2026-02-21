@@ -377,6 +377,7 @@
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
+      pointer-events: none;
     }
 
     .die__dot {
@@ -387,6 +388,7 @@
       align-self: center;
       justify-self: center;
       box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+      pointer-events: none;
     }
 
     /* Røde prikker på 1'er og 5'er når scoring */
@@ -646,6 +648,25 @@ btnRoll.addEventListener('click', onRoll);
 btnStop.addEventListener('click', onStop);
 document.getElementById('play-again-btn').addEventListener('click', restartGame);
 
+// Event delegation — ét listener på hele dice-area, håndterer alle terning-klik
+diceArea.addEventListener('click', (e) => {
+  const dieEl = e.target.closest('.die');
+  if (!dieEl) return;
+  const dieId = parseInt(dieEl.dataset.dieId);
+  if (isNaN(dieId)) return;
+  const die = activeDice.find(d => d.id === dieId);
+  if (die) holdDie(die);
+});
+
+heldArea.addEventListener('click', (e) => {
+  const dieEl = e.target.closest('.die');
+  if (!dieEl) return;
+  const dieId = parseInt(dieEl.dataset.dieId);
+  if (isNaN(dieId)) return;
+  const die = heldDice.find(d => d.id === dieId);
+  if (die) unholdDie(die);
+});
+
 // ══════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════
@@ -706,7 +727,7 @@ async function onRoll() {
   }
 
   // Markér scoring-terninger, lad Nanna vælge hvad hun vil holde
-  renderActiveDiceWithScoring(activeDice, scoringIds);
+  renderActiveDiceWithScoring(activeDice);
   setStatus('Tryk på de grønne terninger for at holde dem — kast resten igen eller stop');
   canHold = true;
 
@@ -742,7 +763,7 @@ function onDieClick(die, scoringIds) {
 
   // Genrender begge områder
   const remainingScoring = scoringDiceIdsMini(activeDice);
-  renderActiveDiceWithScoring(activeDice, remainingScoring);
+  renderActiveDiceWithScoring(activeDice);
   renderHeldDice(heldDice);
 
   if (activeDice.length === 0) {
@@ -853,7 +874,7 @@ async function compPlayTurn() {
     activeDice = activeDice.filter(d => !scoringIds.has(d.id));
     turnScore  = scoreRollMini(heldDice);
 
-    renderActiveDiceWithScoring(activeDice, new Set());
+    renderActiveDiceWithScoring(activeDice);
     renderHeldDice(heldDice);
     setTurnScore(turnScore);
     setStatus(`Computer: +${newPoints} (${turnScore} i alt)`, 'comp-msg');
@@ -915,10 +936,11 @@ function endGame(winner) {
 // UI — RENDER
 // ══════════════════════════════════════════════════════
 
-function makeDieEl(die, cssClass = '', clickHandler = null) {
+function makeDieEl(die, cssClass = '') {
   const el = document.createElement('div');
   el.classList.add('die');
   if (cssClass) el.classList.add(cssClass);
+  el.dataset.dieId = die.id; // bruges af event delegation
 
   // Prikker
   const face = document.createElement('div');
@@ -939,8 +961,6 @@ function makeDieEl(die, cssClass = '', clickHandler = null) {
     face.appendChild(dot);
   }
   el.appendChild(face);
-
-  if (clickHandler) el.addEventListener('click', () => clickHandler(die));
   return el;
 }
 
@@ -964,39 +984,33 @@ function renderActiveDice(diceArr, rolling = false) {
   }
 }
 
-function renderActiveDiceWithScoring(diceArr, scoringIds) {
+function renderActiveDiceWithScoring(diceArr) {
   diceArea.innerHTML = '';
-  // Placer scoring-terninger med klik-handler
   const currentScoringIds = scoringDiceIdsMini(diceArr);
   for (const d of diceArr) {
     const isScoring = currentScoringIds.has(d.id);
     const el = makeDieEl(d, isScoring ? 'die--scoring' : '');
-    if (isScoring && canHold) {
-      el.addEventListener('click', () => holdDie(d, currentScoringIds));
-    }
     diceArea.appendChild(el);
   }
 }
 
-function holdDie(die, scoringIds) {
+function holdDie(die) {
   if (!canHold || currentTurn !== 'nanna') return;
+  // Kun scoring-terninger må holdes
+  const scoringIds = scoringDiceIdsMini(activeDice);
+  if (!scoringIds.has(die.id)) return;
 
-  // Fly-animation
-  const els = [...diceArea.querySelectorAll('.die')];
-  const idx  = activeDice.findIndex(d => d.id === die.id);
-  if (idx !== -1 && els[idx]) {
-    els[idx].classList.add('die--fly');
-  }
+  // Fly-animation på det rigtige element
+  const dieEl = diceArea.querySelector(`[data-die-id="${die.id}"]`);
+  if (dieEl) dieEl.classList.add('die--fly');
 
   setTimeout(() => {
-    // Flyt til held
     activeDice = activeDice.filter(d => d.id !== die.id);
     heldDice.push({ ...die, held: true });
     turnScore = scoreRollMini(heldDice);
     setTurnScore(turnScore);
 
-    const remScoring = scoringDiceIdsMini(activeDice);
-    renderActiveDiceWithScoring(activeDice, remScoring);
+    renderActiveDiceWithScoring(activeDice);
     renderHeldDice(heldDice);
 
     if (activeDice.length === 0) {
@@ -1011,11 +1025,6 @@ function renderHeldDice(diceArr) {
   heldArea.innerHTML = '';
   for (const d of diceArr) {
     const el = makeDieEl(d, 'die--held');
-    // Holdte terninger kan frigives (klik sender tilbage til aktiv)
-    if (currentTurn === 'nanna' && canHold) {
-      el.addEventListener('click', () => unholdDie(d));
-      el.title = 'Tryk for at frigive';
-    }
     heldArea.appendChild(el);
   }
 }
@@ -1028,7 +1037,7 @@ function unholdDie(die) {
   setTurnScore(turnScore);
 
   const scoring = scoringDiceIdsMini(activeDice);
-  renderActiveDiceWithScoring(activeDice, scoring);
+  renderActiveDiceWithScoring(activeDice);
   renderHeldDice(heldDice);
   setStatus('Tryk på grønne terninger — eller kast/stop');
 }
