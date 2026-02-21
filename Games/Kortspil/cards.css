@@ -1,0 +1,66 @@
+/* cards.css — Fælles kortstile til alle kortspil */
+
+.card {
+  width: 80px;
+  height: 112px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.35);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* ── Forside ── */
+.card__face {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.card__corner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.card__corner--br {
+  transform: rotate(180deg);
+  align-self: end;
+  justify-self: end;
+}
+
+.card__value {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.card__suit {
+  font-size: 0.75rem;
+}
+
+.card__center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.card--red   { color: #c0392b; }
+.card--black { color: #1a1a1a; }
+
+/* ── Bagside ── */
+.card--back {
+  background: #fff;
+}
+
+.card__back-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

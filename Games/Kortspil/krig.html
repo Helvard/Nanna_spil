@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krig</title>
+  <link rel="stylesheet" href="cards.css">
+  <style>
+    /* ════════════════════════════════════════════════
+       RESET & GRUNDLAG
+    ════════════════════════════════════════════════ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --card-w: 100px;
+      --card-h: 140px;
+      --pile-w: 90px;
+      --pile-h: 126px;
+      --felt-green: #2d6a4f;
+      --felt-dark:  #1b4332;
+      --gold:       #f1c40f;
+      --gold-dark:  #c9a600;
+      --red-war:    #c0392b;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: #1a1a2e;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(60,30,80,0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(20,60,40,0.4) 0%, transparent 60%);
+      font-family: 'Georgia', 'Times New Roman', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* ════════════════════════════════════════════════
+       SETUP-SKÆRM
+    ════════════════════════════════════════════════ */
+    #setup-screen {
+      background: linear-gradient(160deg, #1b2838 0%, #0f1923 100%);
+      border: 2px solid rgba(241,196,15,0.3);
+      border-radius: 24px;
+      box-shadow: 0 0 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+      padding: 2.5rem 3rem;
+      text-align: center;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    #setup-screen h1 {
+      font-size: clamp(2rem, 6vw, 3rem);
+      letter-spacing: 4px;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(241,196,15,0.4);
+    }
+
+    #setup-screen p { opacity: 0.75; font-family: sans-serif; font-size: 0.95rem; }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7rem;
+    }
+
+    .mode-btn {
+      padding: 0.9rem 1rem;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      font-family: sans-serif;
+      cursor: pointer;
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      transition: transform 0.1s, border-color 0.15s, background 0.15s;
+      line-height: 1.4;
+    }
+    .mode-btn:hover    { background: rgba(255,255,255,0.1); transform: scale(1.03); }
+    .mode-btn.selected { border-color: var(--gold); background: rgba(241,196,15,0.12); color: var(--gold); }
+
+    #start-btn {
+      padding: 1rem;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--gold) 0%, #e67e22 100%);
+      color: #1a1a1a;
+      font-size: 1.3rem;
+      font-weight: bold;
+      font-family: sans-serif;
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--gold-dark), 0 8px 20px rgba(241,196,15,0.25);
+      transition: transform 0.1s;
+      margin-top: 0.4rem;
+      letter-spacing: 1px;
+    }
+    #start-btn:hover    { transform: scale(1.03); }
+    #start-btn:disabled { background: #444; box-shadow: none; color: #888; cursor: default; transform: none; }
+
+    /* ════════════════════════════════════════════════
+       SPILSKÆRM — YDRE RAMME
+    ════════════════════════════════════════════════ */
+    #game-screen {
+      display: none;
+      width: 100%;
+      height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      gap: 0.8rem;
+      position: relative;
+    }
+
+    /* Dekorative hjørnesuiter */
+    .corner-deco {
+      position: fixed;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      opacity: 0.12;
+      pointer-events: none;
+      user-select: none;
+      line-height: 1;
+    }
+    .corner-deco.tl { top: 0.6rem;  left: 0.8rem;  color: #e74c3c; }
+    .corner-deco.tr { top: 0.6rem;  right: 0.8rem; color: #2c3e50; }
+    .corner-deco.bl { bottom: 0.6rem; left: 0.8rem;  color: #2c3e50; }
+    .corner-deco.br { bottom: 0.6rem; right: 0.8rem; color: #e74c3c; }
+
+    /* ── Scorebar ── */
+    #scorebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 680px;
+      color: #fff;
+      flex-shrink: 0;
+      padding: 0 0.5rem;
+    }
+
+    .score-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.1rem;
+    }
+    .score-side .label {
+      font-size: 0.8rem;
+      opacity: 0.65;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-family: sans-serif;
+    }
+    .score-side .count {
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: bold;
+      line-height: 1;
+      color: var(--gold);
+      text-shadow: 0 0 10px rgba(241,196,15,0.3);
+    }
+
+    #round-info {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      font-family: sans-serif;
+      letter-spacing: 1px;
+    }
+
+    /* ════════════════════════════════════════════════
+       FILT-BORD
+    ════════════════════════════════════════════════ */
+    #table {
+      width: 100%;
+      max-width: 680px;
+      flex: 1;
+      max-height: calc(100vh - 140px);
+      position: relative;
+      border-radius: 40px;
+
+      /* Filt-look */
+      background:
+        radial-gradient(ellipse at 50% 50%, #2d6a4f 0%, #1b4332 100%);
+      background-blend-mode: normal;
+
+      /* Ydre ramme */
+      border: 6px solid #3d2b1f;
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,0.06),
+        0 0 0 10px #2a1f15,
+        0 0 0 12px rgba(255,255,255,0.04),
+        0 20px 60px rgba(0,0,0,0.8),
+        inset 0 0 80px rgba(0,0,0,0.25),
+        inset 0 0 0 4px rgba(255,255,255,0.04);
+
+      display: grid;
+      grid-template-rows: 1fr auto auto auto 1fr;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      gap: 0.6rem;
+    }
+
+    /* Filt-tekstur (subtil) */
+    #table::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 35px;
+      background-image:
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 2px,
+          rgba(0,0,0,0.03) 2px,
+          rgba(0,0,0,0.03) 4px
+        );
+      pointer-events: none;
+    }
+
+    /* Dekorativ oval/ring i midten af bordet */
+    #table::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 55%; height: 35%;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.06);
+      pointer-events: none;
+    }
+
+    /* ── Spillerzone ── */
+    .player-zone {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(0.8rem, 3vw, 2rem);
+      z-index: 1;
+    }
+
+    .zone-label {
+      color: rgba(255,255,255,0.5);
+      font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      width: 60px;
+      text-align: center;
+      flex-shrink: 0;
+      font-family: sans-serif;
+    }
+
+    /* ── Trækbunke ── */
+    .pile-stack {
+      position: relative;
+      width: var(--pile-w);
+      height: var(--pile-h);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    /* Skygge-lag bag bunken */
+    .pile-stack::before,
+    .pile-stack::after {
+      content: '';
+      position: absolute;
+      border-radius: 9px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .pile-stack::before { inset: 6px -6px -6px 6px; }
+    .pile-stack::after  { inset: 3px -3px -3px 3px; }
+
+    .pile-stack .pile-top {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      width: var(--pile-w);
+      height: var(--pile-h);
+    }
+
+    /* Klikbar tilstand — pulserende glød */
+    .pile-stack.clickable {
+      animation: pileGlow 1.4s ease-in-out infinite alternate;
+    }
+    .pile-stack.clickable::before,
+    .pile-stack.clickable::after {
+      border-color: rgba(241,196,15,0.4);
+    }
+
+    @keyframes pileGlow {
+      from { filter: drop-shadow(0 0 4px rgba(241,196,15,0.3)); }
+      to   { filter: drop-shadow(0 0 14px rgba(241,196,15,0.75)); }
+    }
+
+    /* Tom bunke */
+    .pile-empty {
+      width: var(--pile-w);
+      height: var(--pile-h);
+      border-radius: 10px;
+      border: 2px dashed rgba(255,255,255,0.12);
+      flex-shrink: 0;
+    }
+
+    /* ── Kortslot (spillet kort på bordet) ── */
+    .card-slot {
+      width: var(--card-w);
+      height: var(--card-h);
+      border-radius: 10px;
+      border: 2px dashed rgba(255,255,255,0.12);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* ── Stikbunke ── */
+    .win-pile {
+      position: relative;
+      width: var(--pile-w);
+      height: var(--pile-h);
+      flex-shrink: 0;
+      border-radius: 10px;
+      border: 2px dashed rgba(255,255,255,0.1);
+    }
+
+    .win-pile .win-layer {
+      position: absolute;
+      width: var(--pile-w);
+      height: var(--pile-h);
+      border-radius: 9px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.2);
+    }
+
+    /* ── Midterstribe ── */
+    #middle-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50px;
+      z-index: 1;
+    }
+
+    #status-msg {
+      color: rgba(255,255,255,0.9);
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      font-weight: bold;
+      text-align: center;
+      letter-spacing: 1px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      z-index: 1;
+      min-height: 1.6rem;
+      font-family: sans-serif;
+    }
+
+    #status-msg.win-nanna { color: var(--gold); }
+    #status-msg.win-comp  { color: #bbb; }
+
+    /* Hint-tekst under bordet */
+    #hint {
+      font-family: sans-serif;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.25);
+      text-align: center;
+      letter-spacing: 1px;
+      flex-shrink: 0;
+    }
+
+    /* ════════════════════════════════════════════════
+       KORT STØRRELSER
+    ════════════════════════════════════════════════ */
+    .card-slot .card { width: var(--card-w);  height: var(--card-h); }
+    .pile-top .card  { width: var(--pile-w);  height: var(--pile-h); border-radius: 9px; }
+
+    /* ════════════════════════════════════════════════
+       ANIMATIONER
+    ════════════════════════════════════════════════ */
+    @keyframes dealFromBottom {
+      from { transform: translateY(100px) scale(0.8); opacity: 0; }
+      to   { transform: translateY(0)     scale(1);   opacity: 1; }
+    }
+    @keyframes dealFromTop {
+      from { transform: translateY(-100px) scale(0.8); opacity: 0; }
+      to   { transform: translateY(0)      scale(1);   opacity: 1; }
+    }
+    @keyframes dealFromLeft {
+      from { transform: translateX(-50px) scale(0.9); opacity: 0; }
+      to   { transform: translateX(0)     scale(1);   opacity: 1; }
+    }
+    @keyframes flipIn {
+      0%   { transform: scaleX(0);    opacity: 0.2; }
+      50%  { transform: scaleX(1.05); }
+      100% { transform: scaleX(1);    opacity: 1; }
+    }
+    @keyframes dropDown {
+      from { transform: translateY(-40px) rotate(-6deg); opacity: 0; }
+      to   { transform: translateY(0)     rotate(0deg);  opacity: 1; }
+    }
+
+    .deal-bottom { animation: dealFromBottom 0.35s cubic-bezier(0.22,1,0.36,1); }
+    .deal-top    { animation: dealFromTop    0.35s cubic-bezier(0.22,1,0.36,1); }
+    .deal-left   { animation: dealFromLeft   0.28s ease-out; }
+    .anim-flip   { animation: flipIn  0.45s cubic-bezier(0.22,1,0.36,1); }
+    .anim-drop   { animation: dropDown 0.3s cubic-bezier(0.22,1,0.36,1); }
+
+    .card.winner {
+      box-shadow: 0 0 0 4px var(--gold), 0 6px 20px rgba(241,196,15,0.4);
+      animation: winPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes winPop {
+      from { transform: scale(0.9); }
+      to   { transform: scale(1); }
+    }
+    .card.loser { opacity: 0.35; filter: grayscale(0.4); }
+
+    /* ════════════════════════════════════════════════
+       KRIG-MODAL
+    ════════════════════════════════════════════════ */
+    #war-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center,
+        rgba(100,0,0,0.9) 0%,
+        rgba(10,0,0,0.97) 100%);
+    }
+    #war-modal.show { display: flex; }
+
+    #war-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+      width: 100%;
+      max-width: 460px;
+      padding: 1.5rem 1.2rem;
+    }
+
+    #war-title {
+      font-size: clamp(2rem, 7vw, 3.2rem);
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 5px;
+      text-shadow: 0 0 30px rgba(241,196,15,0.7), 0 2px 4px rgba(0,0,0,0.9);
+      animation: warTitleIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+      font-family: Georgia, serif;
+    }
+    @keyframes warTitleIn {
+      from { transform: scale(0.3); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    #war-kings {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      width: 100%;
+    }
+
+    .war-king-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .war-king-label {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-family: sans-serif;
+    }
+    .war-king-card {
+      width: clamp(80px, 18vw, 110px);
+      height: clamp(112px, 25vw, 154px);
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.8), 0 0 0 2px rgba(255,255,255,0.1);
+    }
+
+    #war-vs {
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
+      font-weight: 900;
+      color: #e74c3c;
+      text-shadow: 0 0 16px rgba(231,76,60,0.8);
+      animation: vsPulse 0.9s ease-in-out infinite alternate;
+      font-family: sans-serif;
+    }
+    @keyframes vsPulse {
+      from { transform: scale(1);    opacity: 0.75; }
+      to   { transform: scale(1.15); opacity: 1; }
+    }
+
+    #war-down-cards {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      min-height: 72px;
+      align-items: center;
+    }
+
+    .war-down-card {
+      width: 48px;
+      height: 68px;
+      border-radius: 7px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+
+    #war-instruction {
+      color: rgba(255,255,255,0.8);
+      font-size: clamp(0.85rem, 2vw, 1.05rem);
+      text-align: center;
+      min-height: 1.5rem;
+      letter-spacing: 0.5px;
+      font-family: sans-serif;
+    }
+
+    #war-reveal-row {
+      display: flex;
+      gap: 2.5rem;
+      justify-content: center;
+      align-items: flex-end;
+      min-height: 130px;
+    }
+
+    .reveal-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .reveal-label {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.78rem;
+      letter-spacing: 1px;
+      font-family: sans-serif;
+    }
+    .reveal-card {
+      width: clamp(80px, 18vw, 100px);
+      height: clamp(112px, 25vw, 140px);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+    }
+    .reveal-card.winner-card {
+      box-shadow: 0 0 0 4px var(--gold), 0 8px 28px rgba(241,196,15,0.5);
+      animation: revealWin 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .reveal-card.loser-card { opacity: 0.35; filter: grayscale(0.5); }
+    @keyframes revealWin {
+      from { transform: scale(0.8) rotate(-4deg); }
+      to   { transform: scale(1)   rotate(0deg); }
+    }
+
+    #war-btn {
+      width: 100%;
+      max-width: 340px;
+      padding: 1.1rem;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #e74c3c 0%, #922b21 100%);
+      color: #fff;
+      font-size: clamp(1.1rem, 3vw, 1.4rem);
+      font-weight: bold;
+      font-family: sans-serif;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #6e1b15, 0 8px 20px rgba(231,76,60,0.3);
+      letter-spacing: 1px;
+    }
+    #war-btn:active   { transform: translateY(2px); box-shadow: 0 2px 0 #6e1b15; }
+    #war-btn:disabled { background: #444; box-shadow: none; cursor: default; color: #888; }
+
+    /* ════════════════════════════════════════════════
+       SLUT-OVERLAY
+    ════════════════════════════════════════════════ */
+    #end-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      align-items: center;
+      justify-content: center;
+      z-index: 400;
+    }
+    #end-screen.show { display: flex; }
+
+    #end-box {
+      background: linear-gradient(160deg, #1b2838 0%, #0f1923 100%);
+      border: 2px solid rgba(241,196,15,0.3);
+      border-radius: 28px;
+      padding: 2.5rem 3rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 0 60px rgba(0,0,0,0.8);
+    }
+    #end-box h2 {
+      font-size: clamp(1.8rem, 6vw, 2.5rem);
+      color: var(--gold);
+      text-shadow: 0 0 15px rgba(241,196,15,0.4);
+    }
+    #end-box p {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.6);
+      font-family: sans-serif;
+    }
+
+    #play-again-btn {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--gold) 0%, #e67e22 100%);
+      color: #1a1a1a;
+      font-size: 1.2rem;
+      font-weight: bold;
+      font-family: sans-serif;
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--gold-dark);
+      transition: transform 0.1s;
+    }
+    #play-again-btn:hover { transform: scale(1.03); }
+
+    /* ════════════════════════════════════════════════
+       RESPONSIVE — telefon
+    ════════════════════════════════════════════════ */
+    @media (max-width: 480px) or (max-height: 700px) {
+      :root {
+        --card-w: 72px;
+        --card-h: 101px;
+        --pile-w: 64px;
+        --pile-h: 90px;
+      }
+      #table { padding: 1rem 1rem; border-radius: 24px; border-width: 4px; }
+      .zone-label { width: 44px; font-size: 0.65rem; }
+      .player-zone { gap: 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hjørne-dekorationer (altid synlige) -->
+<div class="corner-deco tl">♥</div>
+<div class="corner-deco tr">♠</div>
+<div class="corner-deco bl">♦</div>
+<div class="corner-deco br">♣</div>
+
+<!-- ════════ SETUP ════════ -->
+<div id="setup-screen">
+  <h1>⚔ KRIG ⚔</h1>
+  <p>Vælg spilletilstand</p>
+  <div class="mode-grid">
+    <button class="mode-btn" data-mode="complete">Komplet<br><small>Til én vinder</small></button>
+    <button class="mode-btn" data-mode="26">26 runder</button>
+    <button class="mode-btn" data-mode="52">52 runder</button>
+    <button class="mode-btn" data-mode="78">78 runder</button>
+  </div>
+  <button id="start-btn" disabled>Start spil</button>
+</div>
+
+<!-- ════════ SPIL ════════ -->
+<div id="game-screen">
+
+  <!-- Scorebar -->
+  <div id="scorebar">
+    <div class="score-side">
+      <div class="label">Nanna</div>
+      <div class="count" id="nanna-count">26</div>
+    </div>
+    <div id="round-info">Runde 0</div>
+    <div class="score-side">
+      <div class="label">Computer</div>
+      <div class="count" id="comp-count">26</div>
+    </div>
+  </div>
+
+  <!-- Filt-bord -->
+  <div id="table">
+
+    <!-- Computer-zone -->
+    <div class="player-zone">
+      <div class="zone-label">Computer</div>
+      <div class="pile-stack" id="comp-draw">
+        <div class="pile-top" id="comp-draw-top"></div>
+      </div>
+      <div class="card-slot" id="comp-slot"></div>
+      <div class="win-pile"  id="comp-win"></div>
+    </div>
+
+    <!-- Midterstribe -->
+    <div id="middle-row"></div>
+    <div id="status-msg"></div>
+
+    <!-- Nanna-zone -->
+    <div class="player-zone">
+      <div class="zone-label">Nanna</div>
+      <div class="pile-stack" id="nanna-draw">
+        <div class="pile-top" id="nanna-draw-top"></div>
+      </div>
+      <div class="card-slot" id="nanna-slot"></div>
+      <div class="win-pile"  id="nanna-win"></div>
+    </div>
+
+  </div><!-- /table -->
+
+  <div id="hint">Tryk på din kortbunke for at spille</div>
+
+</div><!-- /game-screen -->
+
+<!-- ════════ KRIG-MODAL ════════ -->
+<div id="war-modal">
+  <div id="war-box">
+    <div id="war-title">⚔ KRIG ⚔</div>
+
+    <div id="war-kings">
+      <div class="war-king-wrap">
+        <div class="war-king-label">Nanna</div>
+        <div id="nanna-king-slot"></div>
+      </div>
+      <div id="war-vs">VS</div>
+      <div class="war-king-wrap">
+        <div class="war-king-label">Computer</div>
+        <div id="comp-king-slot"></div>
+      </div>
+    </div>
+
+    <div id="war-down-cards"></div>
+
+    <div id="war-reveal-row" style="display:none">
+      <div class="reveal-wrap">
+        <div class="reveal-label">Nanna</div>
+        <div id="reveal-nanna"></div>
+      </div>
+      <div class="reveal-wrap">
+        <div class="reveal-label">Computer</div>
+        <div id="reveal-comp"></div>
+      </div>
+    </div>
+
+    <div id="war-instruction">Tryk for at lægge kort ned</div>
+    <button id="war-btn">Læg kort ned ▼</button>
+  </div>
+</div>
+
+<!-- ════════ SLUT ════════ -->
+<div id="end-screen">
+  <div id="end-box">
+    <h2 id="end-title"></h2>
+    <p id="end-detail"></p>
+    <button id="play-again-btn">Spil igen</button>
+  </div>
+</div>
+
+<script src="deck.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+// TILSTAND
+// ══════════════════════════════════════════════════════
+
+let nannaHand    = [];
+let compHand     = [];
+let nannaWon     = 0;
+let compWon      = 0;
+let warPile      = [];
+let mode         = null;
+let roundsPlayed = 0;
+let maxRounds    = Infinity;
+let phase        = 'idle';   // 'idle' | 'result' | 'war'
+let busy         = false;
+
+let warStep       = 0;
+let warNannaCards = [];
+let warCompCards  = [];
+
+// ══════════════════════════════════════════════════════
+// HJÆLPERE
+// ══════════════════════════════════════════════════════
+
+function cardStrength(card) { return card.value === 1 ? 14 : card.value; }
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+function makeKingCard(color) {
+  return { suit: color === 'red' ? '♥' : '♠', value: 13, displayValue: 'K', color };
+}
+
+// ══════════════════════════════════════════════════════
+// DOM-REFERENCER
+// ══════════════════════════════════════════════════════
+
+const modeButtons = document.querySelectorAll('.mode-btn');
+const startBtn    = document.getElementById('start-btn');
+const setupScreen = document.getElementById('setup-screen');
+const gameScreen  = document.getElementById('game-screen');
+const endScreen   = document.getElementById('end-screen');
+const warModal    = document.getElementById('war-modal');
+const warBtn      = document.getElementById('war-btn');
+const nannaDraw   = document.getElementById('nanna-draw');
+const hintEl      = document.getElementById('hint');
+
+// ══════════════════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════════════════
+
+modeButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    modeButtons.forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    mode = btn.dataset.mode;
+    startBtn.disabled = false;
+  });
+});
+
+startBtn.addEventListener('click', startGame);
+warBtn.addEventListener('click', onWarBtnClick);
+document.getElementById('play-again-btn').addEventListener('click', () => {
+  endScreen.classList.remove('show');
+  setupScreen.style.display = 'flex';
+  gameScreen.style.display  = 'none';
+});
+
+// Tryk på Nannas trækbunke
+nannaDraw.addEventListener('click', onPileClick);
+
+// ══════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════
+
+function startGame() {
+  const deck = shuffle(createDeck());
+  nannaHand    = deck.slice(0, 26);
+  compHand     = deck.slice(26);
+  nannaWon = compWon = 0;
+  warPile      = [];
+  roundsPlayed = 0;
+  phase        = 'idle';
+  busy         = false;
+  maxRounds    = mode === 'complete' ? Infinity : parseInt(mode);
+
+  setupScreen.style.display = 'none';
+  gameScreen.style.display  = 'flex';
+
+  clearSlot('nanna-slot');
+  clearSlot('comp-slot');
+  setStatus('');
+  updateScorebar();
+  updateDrawPiles();
+  updateWinPiles();
+  setPileClickable(true);
+  setHint('Tryk på din kortbunke for at spille');
+}
+
+// ══════════════════════════════════════════════════════
+// PILE-INTERAKTION
+// ══════════════════════════════════════════════════════
+
+function setPileClickable(on) {
+  if (on) {
+    nannaDraw.classList.add('clickable');
+  } else {
+    nannaDraw.classList.remove('clickable');
+  }
+}
+
+async function onPileClick() {
+  if (busy || !nannaDraw.classList.contains('clickable')) return;
+  busy = true;
+  setPileClickable(false);
+  setHint('');
+  await playRound();
+}
+
+// ══════════════════════════════════════════════════════
+// NORMAL RUNDE
+// ══════════════════════════════════════════════════════
+
+async function playRound() {
+  if (nannaHand.length === 0 || compHand.length === 0) { endGame(); return; }
+
+  roundsPlayed++;
+  updateScorebar();
+
+  const nannaCard = nannaHand.shift();
+  const compCard  = compHand.shift();
+
+  dealCard('nanna-slot', nannaCard, false, 'deal-bottom');
+  dealCard('comp-slot',  compCard,  false, 'deal-top');
+  updateDrawPiles();
+
+  await wait(380);
+
+  const ns = cardStrength(nannaCard);
+  const cs = cardStrength(compCard);
+
+  if (ns > cs) {
+    markResult('nanna-slot', 'comp-slot');
+    setStatus('Nanna vinder! 🎉', 'win-nanna');
+    await wait(700);
+    collectToWinner('nanna', [nannaCard, compCard, ...warPile]);
+    warPile = [];
+    updateWinPiles();
+    checkEndCondition();
+    if (phase !== 'end') {
+      setStatus('');
+      setPileClickable(true);
+      setHint('Tryk på din kortbunke for at spille');
+      busy = false;
+    }
+
+  } else if (cs > ns) {
+    markResult('comp-slot', 'nanna-slot');
+    setStatus('Computer vinder', 'win-comp');
+    await wait(700);
+    collectToWinner('comp', [nannaCard, compCard, ...warPile]);
+    warPile = [];
+    updateWinPiles();
+    checkEndCondition();
+    if (phase !== 'end') {
+      setStatus('');
+      setPileClickable(true);
+      setHint('Tryk på din kortbunke for at spille');
+      busy = false;
+    }
+
+  } else {
+    // Uafgjort → Krig
+    warPile.push(nannaCard, compCard);
+    await wait(350);
+    openWarModal();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// KRIG-MODAL
+// ══════════════════════════════════════════════════════
+
+function openWarModal() {
+  if (nannaHand.length < 4 || compHand.length < 4) { endGame(); return; }
+
+  warNannaCards = nannaHand.splice(0, 4);
+  warCompCards  = compHand.splice(0, 4);
+  warStep       = 0;
+
+  document.getElementById('war-down-cards').innerHTML   = '';
+  document.getElementById('war-reveal-row').style.display = 'none';
+  document.getElementById('reveal-nanna').innerHTML     = '';
+  document.getElementById('reveal-comp').innerHTML      = '';
+  document.getElementById('war-instruction').textContent = 'Tryk for at lægge kort ned';
+  warBtn.textContent = 'Læg kort ned ▼';
+  warBtn.disabled    = false;
+
+  const nk = renderCard(makeKingCard('red'),   false);
+  nk.classList.add('war-king-card');
+  const ck = renderCard(makeKingCard('black'), false);
+  ck.classList.add('war-king-card');
+  document.getElementById('nanna-king-slot').replaceChildren(nk);
+  document.getElementById('comp-king-slot').replaceChildren(ck);
+
+  warModal.classList.add('show');
+  updateDrawPiles();
+}
+
+function onWarBtnClick() {
+  warStep++;
+  if (warStep <= 3) {
+    layDownWarCard(warStep);
+  } else if (warStep === 4) {
+    revealWarCard();
+  }
+}
+
+function layDownWarCard(step) {
+  const container = document.getElementById('war-down-cards');
+
+  const nEl = renderCard(warNannaCards[step - 1], true);
+  nEl.classList.add('war-down-card', 'anim-drop');
+  const cEl = renderCard(warCompCards[step - 1],  true);
+  cEl.classList.add('war-down-card', 'anim-drop');
+
+  if (step === 1) {
+    const ng = document.createElement('div');
+    ng.id = 'war-nanna-group'; ng.style.cssText = 'display:flex;gap:5px;';
+    const sep = document.createElement('div');
+    sep.style.cssText = 'width:2px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 6px;';
+    const cg = document.createElement('div');
+    cg.id = 'war-comp-group'; cg.style.cssText = 'display:flex;gap:5px;';
+    container.append(ng, sep, cg);
+  }
+
+  document.getElementById('war-nanna-group').appendChild(nEl);
+  document.getElementById('war-comp-group').appendChild(cEl);
+
+  updateDrawPiles();
+
+  const instr = document.getElementById('war-instruction');
+  if (step < 3) {
+    instr.textContent   = `${3 - step} kort tilbage...`;
+    warBtn.textContent  = 'Næste kort ▼';
+  } else {
+    instr.textContent   = 'Nu vender vi det afgørende kort!';
+    warBtn.textContent  = '🔥 Vend kortet! 🔥';
+  }
+}
+
+async function revealWarCard() {
+  warBtn.disabled = true;
+
+  const nannaCard = warNannaCards[3];
+  const compCard  = warCompCards[3];
+
+  document.getElementById('war-reveal-row').style.display = 'flex';
+
+  // Begge ned-vendte
+  const nRev = renderCard(nannaCard, true);
+  nRev.classList.add('reveal-card', 'anim-drop');
+  const cRev = renderCard(compCard, true);
+  cRev.classList.add('reveal-card', 'anim-drop');
+  document.getElementById('reveal-nanna').replaceChildren(nRev);
+  document.getElementById('reveal-comp').replaceChildren(cRev);
+
+  document.getElementById('war-instruction').textContent = '...';
+  await wait(750);
+
+  // Vend Nanna
+  const nFace = renderCard(nannaCard, false);
+  nFace.classList.add('reveal-card', 'anim-flip');
+  document.getElementById('reveal-nanna').replaceChildren(nFace);
+  await wait(380);
+
+  // Vend Computer
+  const cFace = renderCard(compCard, false);
+  cFace.classList.add('reveal-card', 'anim-flip');
+  document.getElementById('reveal-comp').replaceChildren(cFace);
+  await wait(420);
+
+  const ns = cardStrength(nannaCard);
+  const cs = cardStrength(compCard);
+
+  warPile.push(...warNannaCards, ...warCompCards);
+
+  if (ns > cs) {
+    nFace.classList.add('winner-card');
+    cFace.classList.add('loser-card');
+    document.getElementById('war-instruction').textContent = '🏆 Nanna vinder KRIGEN!';
+    await wait(1300);
+    closeWarModal();
+    collectToWinner('nanna', [...warPile]);
+    warPile = [];
+    setStatus('Nanna vinder KRIGEN! 🏆', 'win-nanna');
+
+  } else if (cs > ns) {
+    cFace.classList.add('winner-card');
+    nFace.classList.add('loser-card');
+    document.getElementById('war-instruction').textContent = 'Computer vinder krigen';
+    await wait(1300);
+    closeWarModal();
+    collectToWinner('comp', [...warPile]);
+    warPile = [];
+    setStatus('Computer vinder krigen', 'win-comp');
+
+  } else {
+    document.getElementById('war-instruction').textContent = '⚔ ENDNU EN KRIG! ⚔';
+    await wait(1100);
+    closeWarModal();
+    openWarModal();
+    return;
+  }
+
+  updateWinPiles();
+  updateDrawPiles();
+  updateScorebar();
+  checkEndCondition();
+
+  if (phase !== 'end') {
+    await wait(800);
+    setStatus('');
+    setPileClickable(true);
+    setHint('Tryk på din kortbunke for at spille');
+    busy = false;
+  }
+}
+
+function closeWarModal() { warModal.classList.remove('show'); }
+
+// ══════════════════════════════════════════════════════
+// SLUT
+// ══════════════════════════════════════════════════════
+
+function checkEndCondition() {
+  if (nannaHand.length === 0 || compHand.length === 0) { endGame(); return; }
+  if (maxRounds !== Infinity && roundsPlayed >= maxRounds) { endGame(); return; }
+}
+
+function endGame() {
+  phase = 'end';
+  closeWarModal();
+  const nn = nannaHand.length + nannaWon;
+  const cn = compHand.length + compWon;
+  let title, detail;
+  if (nn > cn)      { title = '🎉 Nanna vinder!'; detail = `Nanna: ${nn} kort — Computer: ${cn} kort`; }
+  else if (cn > nn) { title = 'Computer vinder';  detail = `Computer: ${cn} kort — Nanna: ${nn} kort`; }
+  else              { title = 'Uafgjort!';          detail = `Begge har ${nn} kort`; }
+  document.getElementById('end-title').textContent  = title;
+  document.getElementById('end-detail').textContent = detail;
+  endScreen.classList.add('show');
+}
+
+// ══════════════════════════════════════════════════════
+// UI — KORT OG BUNKER
+// ══════════════════════════════════════════════════════
+
+function dealCard(slotId, card, faceDown, animClass) {
+  const slot = document.getElementById(slotId);
+  slot.innerHTML = '';
+  const el = renderCard(card, faceDown);
+  el.classList.add(animClass);
+  slot.appendChild(el);
+}
+
+function clearSlot(id) { document.getElementById(id).innerHTML = ''; }
+
+function markResult(winnerId, loserId) {
+  document.getElementById(winnerId).querySelector('.card')?.classList.add('winner');
+  document.getElementById(loserId).querySelector('.card')?.classList.add('loser');
+}
+
+function collectToWinner(who, cards) {
+  clearSlot('nanna-slot');
+  clearSlot('comp-slot');
+  if (who === 'nanna') { nannaWon += cards.length; nannaHand.push(...cards); }
+  else                 { compWon  += cards.length; compHand.push(...cards);  }
+  updateScorebar();
+  updateDrawPiles();
+}
+
+function updateDrawPiles() {
+  renderPileTop('nanna-draw-top', nannaHand.length);
+  renderPileTop('comp-draw-top',  compHand.length);
+}
+
+function renderPileTop(containerId, count) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  if (count === 0) return;
+  const dummy = { suit: '♠', value: 1, displayValue: 'A', color: 'black' };
+  container.appendChild(renderCard(dummy, true));
+}
+
+function updateWinPiles() {
+  renderWinPile('nanna-win', nannaWon);
+  renderWinPile('comp-win',  compWon);
+}
+
+function renderWinPile(id, count) {
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  if (count === 0) return;
+
+  const layers = Math.min(Math.ceil(count / 5), 5);
+  for (let i = 0; i < layers; i++) {
+    const layer = document.createElement('div');
+    layer.classList.add('win-layer');
+    layer.style.cssText = `bottom:${i*2}px;left:${i*-1}px;z-index:${i}`;
+    el.appendChild(layer);
+  }
+
+  const dummy = { suit: '♠', value: 1, displayValue: 'A', color: 'black' };
+  const top = renderCard(dummy, true);
+  const l = layers - 1;
+  top.style.cssText = `position:absolute;bottom:${l*2}px;left:${l*-1}px;z-index:${layers+1}`;
+  top.classList.add('deal-left');
+  el.appendChild(top);
+}
+
+function setStatus(msg, cssClass = '') {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg;
+  el.className   = cssClass;
+}
+
+function setHint(msg) { hintEl.textContent = msg; }
+
+function updateScorebar() {
+  document.getElementById('nanna-count').textContent = nannaHand.length;
+  document.getElementById('comp-count').textContent  = compHand.length;
+  document.getElementById('round-info').textContent  =
+    maxRounds === Infinity ? `Runde ${roundsPlayed}` : `${roundsPlayed} / ${maxRounds}`;
+}
+</script>
+</body>
+</html>

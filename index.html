@@ -1,342 +1,523 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐾 Nanna's Spil - Samling</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nanna's Spil 🎮</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+    :root {
+      --gold:      #f1c40f;
+      --gold-dark: #c9a600;
+      --bg:        #13131f;
+      --surface:   rgba(255,255,255,0.05);
+      --border:    rgba(255,255,255,0.08);
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+    html { scroll-behavior: smooth; }
 
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            animation: titleFloat 3s ease-in-out infinite;
-        }
+    body {
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse at 15% 10%, rgba(60,30,100,0.35) 0%, transparent 45%),
+        radial-gradient(ellipse at 85% 90%, rgba(20,60,80,0.3) 0%, transparent 45%);
+      font-family: 'Georgia', serif;
+      color: #fff;
+      min-height: 100vh;
+      padding: 0 0 4rem;
+    }
 
-        @keyframes titleFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
+    /* ══════════════════════════════════
+       CORNER DECORATIONS
+    ══════════════════════════════════ */
+    .corner-deco {
+      position: fixed;
+      font-size: clamp(2rem, 4vw, 3rem);
+      opacity: 0.07;
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
+    }
+    .corner-deco.tl { top: 0.8rem; left: 1rem; }
+    .corner-deco.tr { top: 0.8rem; right: 1rem; }
+    .corner-deco.bl { bottom: 0.8rem; left: 1rem; }
+    .corner-deco.br { bottom: 0.8rem; right: 1rem; }
 
-        h1 {
-            color: white;
-            font-size: 3em;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
-            margin-bottom: 10px;
-        }
+    /* ══════════════════════════════════
+       HEADER
+    ══════════════════════════════════ */
+    header {
+      text-align: center;
+      padding: 3.5rem 1rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
 
-        .subtitle {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1.3em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
+    header h1 {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      color: var(--gold);
+      letter-spacing: 4px;
+      text-shadow: 0 0 30px rgba(241,196,15,0.35), 0 2px 0 rgba(0,0,0,0.5);
+      margin-bottom: 0.5rem;
+    }
 
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
+    header p {
+      font-family: sans-serif;
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
 
-        .game-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
+    /* ══════════════════════════════════
+       MAIN LAYOUT
+    ══════════════════════════════════ */
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 1.2rem;
+      position: relative;
+      z-index: 1;
+    }
 
-        .game-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.6s;
-        }
+    /* ══════════════════════════════════
+       TOP-LEVEL TABS (Krea / Games)
+    ══════════════════════════════════ */
+    .tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
 
-        .game-card:hover::before {
-            left: 100%;
-        }
+    .tab-btn {
+      padding: 0.65rem 1.6rem;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.35);
+      font-family: sans-serif;
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+    .tab-btn:hover:not(.active) {
+      color: rgba(255,255,255,0.65);
+    }
 
-        .game-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        }
+    /* ══════════════════════════════════
+       TAB PANELS
+    ══════════════════════════════════ */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
-        .game-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+    /* ══════════════════════════════════
+       SUBCATEGORY SECTIONS (Games only)
+    ══════════════════════════════════ */
+    .section {
+      margin-bottom: 2.8rem;
+    }
 
-        .game-icon {
-            font-size: 3em;
-            margin-right: 15px;
-        }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 1.1rem;
+    }
 
-        .game-title {
-            font-size: 1.8em;
-            color: #333;
-            font-weight: bold;
-        }
+    .section-title h2 {
+      font-size: clamp(0.78rem, 2vw, 0.88rem);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-family: sans-serif;
+      color: rgba(255,255,255,0.3);
+      font-weight: bold;
+    }
 
-        .game-description {
-            color: #666;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
 
-        .game-features {
-            margin-bottom: 20px;
-        }
+    /* ══════════════════════════════════
+       GAME GRID
+    ══════════════════════════════════ */
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+      gap: 1rem;
+    }
 
-        .feature {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin: 3px;
-        }
+    /* ══════════════════════════════════
+       GAME CARD
+    ══════════════════════════════════ */
+    .game-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.4rem 1.4rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
 
-        .play-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            text-decoration: none;
-            padding: 15px 30px;
-            border-radius: 30px;
-            font-size: 1.1em;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            text-align: center;
-            width: 100%;
-            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
-        }
+    .game-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+    }
 
-        .play-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
-        }
+    .game-card:hover {
+      border-color: rgba(255,255,255,0.18);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+    .game-card:hover::before { opacity: 1; }
+    .game-card:active { transform: translateY(0); }
 
-        .tech-badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8em;
-            font-weight: bold;
-        }
+    /* Accent bar at top */
+    .game-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 20px 20px 0 0;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .game-card:hover::after { opacity: 1; }
 
-        .html-badge { color: #e34c26; }
-        .python-badge { color: #3572A5; }
-        .arcade-badge { color: #4a90e2; }
+    /* Color accents per category */
+    .accent-gold::after   { background: linear-gradient(90deg, var(--gold), #e67e22); }
+    .accent-blue::after   { background: linear-gradient(90deg, #3498db, #2980b9); }
+    .accent-red::after    { background: linear(90deg, #e74c3c, #c0392b); }
+    .accent-green::after  { background: linear-gradient(90deg, #2ecc71, #27ae60); }
+    .accent-purple::after { background: linear-gradient(90deg, #9b59b6, #8e44ad); }
+    .accent-teal::after   { background: linear-gradient(90deg, #1abc9c, #16a085); }
 
-        footer {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: 40px;
-            padding: 20px;
-        }
+    .game-emoji {
+      font-size: clamp(2.2rem, 5vw, 3rem);
+      line-height: 1;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+    }
 
-        .coming-soon {
-            opacity: 0.7;
-        }
+    .game-name {
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      font-weight: bold;
+      color: #fff;
+      line-height: 1.2;
+    }
 
-        .coming-soon .play-button {
-            background: linear-gradient(135deg, #a8a8a8 0%, #666666 100%);
-            cursor: not-allowed;
-        }
+    .game-desc {
+      font-family: sans-serif;
+      font-size: clamp(0.78rem, 2vw, 0.88rem);
+      color: rgba(255,255,255,0.4);
+      line-height: 1.55;
+      flex: 1;
+    }
 
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2em;
-            }
-            
-            .games-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .game-card {
-                padding: 20px;
-            }
-        }
-    </style>
+    .game-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.1rem;
+    }
+
+    .tag {
+      font-family: sans-serif;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.5px;
+    }
+
+    /* Play button row */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.3rem;
+    }
+
+    .play-label {
+      font-family: sans-serif;
+      font-size: 0.78rem;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.22);
+      transition: color 0.2s;
+    }
+    .game-card:hover .play-label { color: var(--gold); }
+
+    .play-arrow {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.15);
+      transition: color 0.2s, transform 0.2s;
+    }
+    .game-card:hover .play-arrow {
+      color: var(--gold);
+      transform: translateX(4px);
+    }
+
+    /* Unavailable card */
+    .game-card.unavailable {
+      cursor: default;
+      opacity: 0.45;
+    }
+    .game-card.unavailable:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: var(--border);
+    }
+    .game-card.unavailable .play-label { display: none; }
+    .game-card.unavailable .play-arrow { display: none; }
+    .coming-badge {
+      font-family: sans-serif;
+      font-size: 0.68rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+    }
+
+    /* ══════════════════════════════════
+       FOOTER
+    ══════════════════════════════════ */
+    footer {
+      text-align: center;
+      margin-top: 4rem;
+      padding: 1.5rem;
+      font-family: sans-serif;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.18);
+      letter-spacing: 1px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 500px) {
+      header { padding: 2.5rem 1rem 1.5rem; }
+      .tab-btn { padding: 0.55rem 1rem; font-size: 0.8rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🐾 Nanna's Spil</h1>
-            <p class="subtitle">Sjove og lærerige spil til børn</p>
-        </header>
 
-        <main class="games-grid">
-            <!-- HTML Games -->
-            <article class="game-card">
-                <span class="tech-badge html-badge">HTML5</span>
-                <div class="game-header">
-                    <span class="game-icon">🎮</span>
-                    <h2 class="game-title">Paw Patrol Vendespil</h2>
-                </div>
-                <p class="game-description">
-                    Klassisk hukommelsesspil med Paw Patrol karakterer. Find alle parrene! 
-                    Optimeret til iPad og tablets med touch-kontroller.
-                </p>
-                <div class="game-features">
-                    <span class="feature">🎯 1-2 spillere</span>
-                    <span class="feature">📱 iPad-optimeret</span>
-                    <span class="feature">🎨 Flotte animationer</span>
-                    <span class="feature">🏆 Score-system</span>
-                </div>
-                <a href="Games/Vendespil/vendespil_ipad.html" class="play-button">🎮 Spil Nu</a>
-            </article>
+<div class="corner-deco tl">🎮</div>
+<div class="corner-deco tr">⭐</div>
+<div class="corner-deco bl">🎲</div>
+<div class="corner-deco br">🃏</div>
 
-            <article class="game-card">
-                <span class="tech-badge html-badge">HTML5</span>
-                <div class="game-header">
-                    <span class="game-icon">🎨</span>
-                    <h2 class="game-title">Farvelæg Spil</h2>
-                </div>
-                <p class="game-description">
-                    Vælg mellem Paw Patrol, Disney, dyr og køretøjer. Farvelæg frit eller med tal. 
-                    Gem dine kunstværker i personligt galleri!
-                </p>
-                <div class="game-features">
-                    <span class="feature">🎨 Flere temaer</span>
-                    <span class="feature">🔢 Tal-farvelægning</span>
-                    <span class="feature">🖼️ Galleri</span>
-                    <span class="feature">📱 iPad-optimeret</span>
-                </div>
-                <a href="Games/Farvelæg/farvelæg.html" class="play-button">🎨 Spil Nu</a>
-            </article>
+<header>
+  <h1>Nanna's Spil</h1>
+  <p>Vælg et spil og kom i gang</p>
+</header>
 
-            <article class="game-card">
-                <span class="tech-badge html-badge">HTML5</span>
-                <div class="game-header">
-                    <span class="game-icon">🎯</span>
-                    <h2 class="game-title">Kalaha</h2>
-                </div>
-                <p class="game-description">
-                    Spil det klassiske brætspil mod computeren eller en ven. Vælg din avatar og farve!
-                    Smart AI der tilpasser sig dit niveau.
-                </p>
-                <div class="game-features">
-                    <span class="feature">🤖 AI-modstander</span>
-                    <span class="feature">� 2 spillere</span>
-                    <span class="feature">� Strategisk</span>
-                    <span class="feature">🏆 Turnering</span>
-                </div>
-                <a href="Games/Kalaha/kalaha_new.html" class="play-button">🎯 Spil Nu</a>
-            </article>
+<main>
 
-            <!-- Python Games -->
-            <article class="game-card">
-                <span class="tech-badge python-badge">Python</span>
-                <div class="game-header">
-                    <span class="game-icon">🔤</span>
-                    <h2 class="game-title">Bogstavjagt</h2>
-                </div>
-                <p class="game-description">
-                    Find alle bogstaverne i dette farverige og animerede spil. 
-                    Moderne Arcade-version med flotte effekter.
-                </p>
-                <div class="game-features">
-                    <span class="feature">🌈 Farverig</span>
-                    <span class="feature">✨ Animationer</span>
-                    <span class="feature">🎯 Udfordrende</span>
-                    <span class="feature">🏆 Point-system</span>
-                </div>
-                <a href="Games/Bogstaver/Bogstavjagt/index.html" class="play-button">🔤 Spil Nu</a>
-            </article>
+  <!-- ── Tab bar ── -->
+  <div class="tab-bar" role="tablist">
+    <button class="tab-btn active" role="tab" data-tab="games" onclick="switchTab('games')">🎮 Spil</button>
+    <button class="tab-btn"        role="tab" data-tab="krea"  onclick="switchTab('krea')">🎨 Krea</button>
+  </div>
 
-            <!-- Coming Soon Games -->
-            <article class="game-card coming-soon">
-                <span class="tech-badge html-badge">HTML5</span>
-                <div class="game-header">
-                    <span class="game-icon">🎯</span>
-                    <div class="game-card" onclick="window.location.href='Games/Farvelæg/farvelæg.html'">
-                <div class="game-image">🎨</div>
-                <h3>Farvelæg Spil</h3>
-                <p>Vælg mellem Paw Patrol, Disney, dyr og køretøjer. Farvelæg frit eller med tal. Gem dine kunstværker!</p>
-                <button class="play-btn">Spil Nu</button>
-            </div>
-                <div class="game-features">
-                    <span class="feature">🤖 AI-modstander</span>
-                    <span class="feature">👥 2 spillere</span>
-                    <span class="feature">🎮 Strategisk</span>
-                    <span class="feature">🏆 Turnering</span>
-                </div>
-                <a href="#" class="play-button">🚧 Kommer Snart</a>
-            </article>
+  <!-- ════════════════════════════════════
+       GAMES PANEL
+  ════════════════════════════════════ -->
+  <div id="panel-games" class="tab-panel active">
 
-            <article class="game-card coming-soon">
-                <span class="tech-badge python-badge">Python</span>
-                <div class="game-header">
-                    <span class="game-icon">🧮</span>
-                    <h2 class="game-title">Regne Spil</h2>
-                </div>
-                <p class="game-description">
-                    Lær at regne med sjove figurer og farver. 
-                    Tilpasset sværhedsgrad for alle aldre.
-                </p>
-                <div class="game-features">
-                    <span class="feature">🔢 Matematik</span>
-                    <span class="feature">📈 Læringsprogression</span>
-                    <span class="feature">🎨 Visuel</span>
-                    <span class="feature">👆 Interaktiv</span>
-                </div>
-                <a href="#" class="play-button">🚧 Kommer Snart</a>
-            </article>
+    <!-- Terningspil -->
+    <div class="section">
+      <div class="section-title"><h2>🎲 Terningspil</h2></div>
+      <div class="game-grid">
 
-            <article class="game-card coming-soon">
-                <span class="tech-badge python-badge">Python</span>
-                <div class="game-header">
-                    <span class="game-icon">🏃</span>
-                    <h2 class="game-title">Labyrint</h2>
-                </div>
-                <p class="game-description">
-                    Hjælp Bamsen med at finde pigen gennem labyrinten! 
-                    Spændende eventyr med flere baner.
-                </p>
-                <div class="game-features">
-                    <span class="feature">🗺️ Flere baner</span>
-                    <span class="feature">🎮 Eventyr</span>
-                    <span class="feature">🧩 Puslespil</span>
-                    <span class="feature">🏆 Belønninger</span>
-                </div>
-                <a href="#" class="play-button">🚧 Kommer Snart</a>
-            </article>
-        </main>
+        <a href="Games/Kortspil/mini10000.html" class="game-card accent-gold">
+          <div class="game-emoji">🎲</div>
+          <div class="game-name">Mini 10.000</div>
+          <div class="game-desc">Kast terninger og saml point. Hold de bedste terninger og prøv lykken — men bust ikke!</div>
+          <div class="game-tags">
+            <span class="tag">1 vs. computer</span>
+            <span class="tag">Til 500 point</span>
+            <span class="tag">Strategi</span>
+          </div>
+          <div class="card-footer">
+            <span class="play-label">Spil nu</span>
+            <span class="play-arrow">→</span>
+          </div>
+        </a>
 
-        <footer>
-            <p>🐾 Lavet med ❤️ til Nanna | © 2026</p>
-            <p>Kør på din egen server med Docker 🐳</p>
-        </footer>
+      </div>
     </div>
+
+    <!-- Kortspil -->
+    <div class="section">
+      <div class="section-title"><h2>🃏 Kortspil</h2></div>
+      <div class="game-grid">
+
+        <a href="Games/Kortspil/krig.html" class="game-card accent-red">
+          <div class="game-emoji">⚔️</div>
+          <div class="game-name">Krig</div>
+          <div class="game-desc">Vend kort og den højeste vinder bunken. Dramatisk krig afgøres med fire kort!</div>
+          <div class="game-tags">
+            <span class="tag">1 vs. computer</span>
+            <span class="tag">Held</span>
+            <span class="tag">Animationer</span>
+          </div>
+          <div class="card-footer">
+            <span class="play-label">Spil nu</span>
+            <span class="play-arrow">→</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Brætspil -->
+    <div class="section">
+      <div class="section-title"><h2>♟️ Brætspil</h2></div>
+      <div class="game-grid">
+
+        <a href="Games/Vendespil/vendespil_ipad.html" class="game-card accent-purple">
+          <div class="game-emoji">🐾</div>
+          <div class="game-name">Vendespil</div>
+          <div class="game-desc">Klassisk hukommelsesspil med Paw Patrol-karakterer. Find alle parrene!</div>
+          <div class="game-tags">
+            <span class="tag">1-2 spillere</span>
+            <span class="tag">Hukommelse</span>
+            <span class="tag">iPad-optimeret</span>
+          </div>
+          <div class="card-footer">
+            <span class="play-label">Spil nu</span>
+            <span class="play-arrow">→</span>
+          </div>
+        </a>
+
+        <a href="Games/Kalaha/kalaha_new.html" class="game-card accent-teal">
+          <div class="game-emoji">🟤</div>
+          <div class="game-name">Kalaha</div>
+          <div class="game-desc">Det klassiske hulspil. Flyt sten rundt på brættet og saml flest i din kala.</div>
+          <div class="game-tags">
+            <span class="tag">1 vs. computer</span>
+            <span class="tag">Strategi</span>
+            <span class="tag">Klassiker</span>
+          </div>
+          <div class="card-footer">
+            <span class="play-label">Spil nu</span>
+            <span class="play-arrow">→</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Andet -->
+    <div class="section">
+      <div class="section-title"><h2>✨ Andet</h2></div>
+      <div class="game-grid">
+
+        <a href="Games/Bogstaver/Bogstavjagt/index.html" class="game-card accent-blue">
+          <div class="game-emoji">🔤</div>
+          <div class="game-name">Bogstavjagt</div>
+          <div class="game-desc">Find og fang bogstaverne! Et farverigt Python/Arcade-spil — kræver lokal installation.</div>
+          <div class="game-tags">
+            <span class="tag">Python</span>
+            <span class="tag">Lokal app</span>
+            <span class="tag">Bogstaver</span>
+          </div>
+          <div class="card-footer">
+            <span class="play-label">Åbn info</span>
+            <span class="play-arrow">→</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+  </div><!-- /panel-games -->
+
+  <!-- ════════════════════════════════════
+       KREA PANEL
+  ════════════════════════════════════ -->
+  <div id="panel-krea" class="tab-panel">
+
+    <div class="section">
+      <div class="section-title"><h2>🎨 Skab noget</h2></div>
+      <div class="game-grid">
+
+        <a href="Games/Bogstaver/stav.html" class="game-card accent-green">
+          <div class="game-emoji">🔤</div>
+          <div class="game-name">Stav Ord</div>
+          <div class="game-desc">Tryk bogstaverne i den rigtige rækkefølge og stav ordene fra billederne.</div>
+          <div class="game-tags">
+            <span class="tag">Sprog</span>
+            <span class="tag">Bogstaver</span>
+            <span class="tag">8 ord pr. runde</span>
+          </div>
+          <div class="card-footer">
+            <span class="play-label">Spil nu</span>
+            <span class="play-arrow">→</span>
+          </div>
+        </a>
+
+        <a href="Games/Farvelæg/farvelæg.html" class="game-card accent-purple">
+          <div class="game-emoji">🖌️</div>
+          <div class="game-name">Farvelæg</div>
+          <div class="game-desc">Vælg motiv og farvelæg frit — eller brug tal-farvelægning. Gem dine kunstværker!</div>
+          <div class="game-tags">
+            <span class="tag">Paw Patrol</span>
+            <span class="tag">Dyr</span>
+            <span class="tag">Galleri</span>
+          </div>
+          <div class="card-footer">
+            <span class="play-label">Spil nu</span>
+            <span class="play-arrow">→</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+  </div><!-- /panel-krea -->
+
+</main>
+
+<footer>
+  Lavet med ❤️ til Nanna &nbsp;·&nbsp; © 2026
+</footer>
+
+<script>
+  function switchTab(name) {
+    // Deactivate all
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    // Activate chosen
+    document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+    document.getElementById(`panel-${name}`).classList.add('active');
+  }
+</script>
 </body>
 </html>

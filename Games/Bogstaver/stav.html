@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Stav Ord 🔤</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --gold:      #f1c40f;
+      --gold-dark: #c9a600;
+      --sky:       #3a9bd5;
+      --green:     #2ecc71;
+      --red:       #e74c3c;
+      --purple:    #9b59b6;
+      --bg:        #1a1a2e;
+      --tile-size: clamp(52px, 11vw, 72px);
+      --slot-size: clamp(52px, 11vw, 72px);
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse at 20% 10%, rgba(58,155,213,0.25) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 90%, rgba(155,89,182,0.2) 0%, transparent 50%);
+      font-family: 'Georgia', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    /* ── Corner decorations ── */
+    .corner-deco {
+      position: fixed;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      opacity: 0.09;
+      pointer-events: none;
+      user-select: none;
+    }
+    .corner-deco.tl { top: 0.5rem;    left: 0.7rem;  }
+    .corner-deco.tr { top: 0.5rem;    right: 0.7rem; }
+    .corner-deco.bl { bottom: 0.5rem; left: 0.7rem;  }
+    .corner-deco.br { bottom: 0.5rem; right: 0.7rem; }
+
+    /* ════════════════════════════════════
+       GAME SCREEN
+    ════════════════════════════════════ */
+    #game-screen {
+      width: 100%;
+      max-width: 580px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.8rem 1rem 1rem;
+      gap: 0.6rem;
+    }
+
+    /* ── Header ── */
+    #header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.2rem, 3.5vw, 1.7rem);
+      color: var(--gold);
+      letter-spacing: 3px;
+      text-shadow: 0 0 14px rgba(241,196,15,0.4);
+    }
+
+    #progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    #word-counter {
+      font-family: sans-serif;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 1px;
+    }
+    .star-pip {
+      font-size: 1rem;
+      opacity: 0.25;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .star-pip.earned { opacity: 1; transform: scale(1.25); }
+
+    /* ════════════════════════════════════
+       FILT-BORD
+    ════════════════════════════════════ */
+    #table {
+      flex: 1;
+      width: 100%;
+      position: relative;
+      border-radius: 28px;
+      background: radial-gradient(ellipse at 50% 40%, #2d5a8e 0%, #1a3a5c 100%);
+      border: 5px solid #2a1f15;
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,0.04),
+        0 0 0 9px #1e1510,
+        0 0 0 11px rgba(255,255,255,0.02),
+        0 16px 50px rgba(0,0,0,0.8),
+        inset 0 0 60px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 1.2rem 1rem;
+      gap: 0.6rem;
+      overflow: hidden;
+    }
+
+    #table::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      background-image: repeating-linear-gradient(
+        45deg, transparent, transparent 3px,
+        rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 6px
+      );
+      pointer-events: none;
+    }
+
+    /* ── Billede ── */
+    #img-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      z-index: 1;
+      min-height: 0;
+    }
+
+    #word-image {
+      max-height: 100%;
+      max-width: 100%;
+      font-size: clamp(4rem, 18vw, 9rem);
+      line-height: 1;
+      text-align: center;
+      filter: drop-shadow(0 4px 16px rgba(0,0,0,0.5));
+      user-select: none;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #word-image.pop {
+      animation: imgPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes imgPop {
+      0%   { transform: scale(0.85) rotate(-3deg); }
+      60%  { transform: scale(1.08) rotate(1deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    /* ── Hint (kategori) ── */
+    #hint {
+      font-family: sans-serif;
+      font-size: clamp(0.7rem, 2vw, 0.88rem);
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      z-index: 1;
+      flex-shrink: 0;
+    }
+
+    /* ── Letter slots (blanks) ── */
+    #slots-wrap {
+      display: flex;
+      gap: clamp(0.35rem, 1.5vw, 0.6rem);
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      z-index: 1;
+      flex-shrink: 0;
+    }
+
+    .letter-slot {
+      width: var(--slot-size);
+      height: var(--slot-size);
+      border-radius: clamp(10px, 2vw, 14px);
+      border: 2.5px dashed rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-weight: bold;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      position: relative;
+      user-select: none;
+    }
+    .letter-slot.filled {
+      border-style: solid;
+      border-color: rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.12);
+    }
+    .letter-slot.correct {
+      border-color: var(--green);
+      background: rgba(46,204,113,0.2);
+      box-shadow: 0 0 0 2px var(--green), 0 0 12px rgba(46,204,113,0.35);
+    }
+    .letter-slot.wrong {
+      border-color: var(--red);
+      background: rgba(231,76,60,0.18);
+      animation: slotShake 0.4s ease;
+    }
+    @keyframes slotShake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-6px); }
+      40%     { transform: translateX(6px); }
+      60%     { transform: translateX(-4px); }
+      80%     { transform: translateX(4px); }
+    }
+
+    .letter-slot .slot-letter {
+      animation: letterDrop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes letterDrop {
+      from { transform: scale(0.5) translateY(-12px); opacity: 0.3; }
+      to   { transform: scale(1) translateY(0);      opacity: 1;   }
+    }
+
+    /* ── Slet knap ── */
+    #btn-delete {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1.1rem;
+      border: none;
+      border-radius: 10px;
+      background: rgba(231,76,60,0.2);
+      border: 1.5px solid rgba(231,76,60,0.3);
+      color: rgba(255,100,80,0.85);
+      font-size: clamp(0.75rem, 2vw, 0.9rem);
+      font-family: sans-serif;
+      font-weight: bold;
+      letter-spacing: 1px;
+      cursor: pointer;
+      z-index: 1;
+      flex-shrink: 0;
+      transition: background 0.15s, opacity 0.2s;
+    }
+    #btn-delete:active { background: rgba(231,76,60,0.35); }
+    #btn-delete:disabled { opacity: 0.2; cursor: default; }
+
+    /* ── Bogstavfliser ── */
+    #tiles-area {
+      display: flex;
+      gap: clamp(0.4rem, 1.5vw, 0.65rem);
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      flex-shrink: 0;
+      padding: 0.5rem 0;
+    }
+
+    .tile {
+      width: var(--tile-size);
+      height: var(--tile-size);
+      border-radius: clamp(10px, 2vw, 14px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-weight: bold;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      user-select: none;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      transition: transform 0.1s, opacity 0.2s;
+      position: relative;
+      color: #1a1a1a;
+    }
+    .tile:active { transform: scale(0.92) translateY(2px); }
+    .tile.used   { opacity: 0.15; cursor: default; pointer-events: none; }
+    .tile.bounce {
+      animation: tileBounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes tileBounce {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(0.85) translateY(4px); }
+      100% { transform: scale(1); }
+    }
+
+    /* Farver på fliser — cyklisk */
+    .tile-color-0 { background: linear-gradient(135deg, #f1c40f, #e67e22); box-shadow: 0 4px 0 #c9a600; }
+    .tile-color-1 { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 4px 0 #1a6a9a; color: #fff; }
+    .tile-color-2 { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 0 #922b21; color: #fff; }
+    .tile-color-3 { background: linear-gradient(135deg, #2ecc71, #27ae60); box-shadow: 0 4px 0 #1e8449; color: #fff; }
+    .tile-color-4 { background: linear-gradient(135deg, #9b59b6, #8e44ad); box-shadow: 0 4px 0 #6c3483; color: #fff; }
+    .tile-color-5 { background: linear-gradient(135deg, #1abc9c, #16a085); box-shadow: 0 4px 0 #0e6655; color: #fff; }
+    .tile-color-6 { background: linear-gradient(135deg, #e67e22, #d35400); box-shadow: 0 4px 0 #a04000; color: #fff; }
+
+    /* ════════════════════════════════════
+       FEJL-OVERLAY
+    ════════════════════════════════════ */
+    #wrong-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(200,0,0,0.12);
+      pointer-events: none;
+      z-index: 200;
+    }
+    #wrong-overlay.show {
+      display: block;
+      animation: wrongFlash 0.5s ease-out forwards;
+    }
+    @keyframes wrongFlash {
+      0%   { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* ════════════════════════════════════
+       KONFETTI / SEJR
+    ════════════════════════════════════ */
+    #confetti-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 300;
+      overflow: hidden;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 14px;
+      border-radius: 2px;
+      top: -20px;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ════════════════════════════════════
+       SLUT-SKÆRM
+    ════════════════════════════════════ */
+    #end-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      align-items: center;
+      justify-content: center;
+      z-index: 400;
+    }
+    #end-screen.show { display: flex; }
+    #end-box {
+      background: linear-gradient(160deg, #1b2838 0%, #0f1923 100%);
+      border: 2px solid rgba(241,196,15,0.4);
+      border-radius: 28px;
+      padding: 2.5rem 2.5rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 340px;
+      width: 90%;
+      box-shadow: 0 0 60px rgba(0,0,0,0.9);
+    }
+    #end-box .big-emoji { font-size: 4rem; }
+    #end-box h2 {
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      color: var(--gold);
+      text-shadow: 0 0 16px rgba(241,196,15,0.4);
+    }
+    #end-box p { font-size: 1rem; color: rgba(255,255,255,0.55); font-family: sans-serif; }
+    #play-again-btn {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--gold) 0%, #e67e22 100%);
+      color: #1a1a1a;
+      font-size: 1.2rem;
+      font-weight: bold;
+      font-family: sans-serif;
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--gold-dark);
+      margin-top: 0.5rem;
+    }
+
+    /* ════════════════════════════════════
+       RIGTIGT-OVERLAY (kort grøn flash)
+    ════════════════════════════════════ */
+    #correct-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(46,204,113,0.1);
+      pointer-events: none;
+      z-index: 200;
+    }
+    #correct-overlay.show {
+      display: block;
+      animation: correctFlash 0.55s ease-out forwards;
+    }
+    @keyframes correctFlash {
+      0%   { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @media (max-height: 680px) {
+      :root { --tile-size: 48px; --slot-size: 48px; }
+      #game-screen { gap: 0.3rem; padding: 0.4rem 0.7rem; }
+      #table { padding: 0.8rem; gap: 0.4rem; }
+      #word-image { font-size: 3.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="corner-deco tl">🔤</div>
+<div class="corner-deco tr">⭐</div>
+<div class="corner-deco bl">🎯</div>
+<div class="corner-deco br">🏆</div>
+
+<div id="wrong-overlay"></div>
+<div id="correct-overlay"></div>
+<div id="confetti-layer"></div>
+
+<div id="game-screen">
+
+  <div id="header">
+    <h1>🔤 Stav Ord</h1>
+    <div id="progress-wrap">
+      <span id="word-counter"></span>
+    </div>
+  </div>
+
+  <div id="table">
+
+    <!-- Billede / emoji -->
+    <div id="img-wrap">
+      <div id="word-image"></div>
+    </div>
+
+    <!-- Kategori-hint -->
+    <div id="hint"></div>
+
+    <!-- Tomme felter -->
+    <div id="slots-wrap"></div>
+
+    <!-- Slet knap -->
+    <button id="btn-delete" disabled>⌫ Slet</button>
+
+    <!-- Bogstavfliser -->
+    <div id="tiles-area"></div>
+
+  </div>
+</div>
+
+<div id="end-screen">
+  <div id="end-box">
+    <div class="big-emoji">🏆</div>
+    <h2>Godt klaret!</h2>
+    <p id="end-detail"></p>
+    <button id="play-again-btn">Spil igen ⭐</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// ORDBANK — emoji + ord + kategori
+// ══════════════════════════════════════════════════════
+const WORDS = [
+  // Dyr
+  { emoji: '🐱', word: 'KAT',      category: 'Dyr' },
+  { emoji: '🐶', word: 'HUND',     category: 'Dyr' },
+  { emoji: '🐟', word: 'FISK',     category: 'Dyr' },
+  { emoji: '🐦', word: 'FUGL',     category: 'Dyr' },
+  { emoji: '🐸', word: 'FRØEN',    category: 'Dyr' },
+  { emoji: '🐮', word: 'KO',       category: 'Dyr' },
+  { emoji: '🐷', word: 'GRIS',     category: 'Dyr' },
+  { emoji: '🐰', word: 'KANIN',    category: 'Dyr' },
+  { emoji: '🦁', word: 'LØVE',     category: 'Dyr' },
+  { emoji: '🐘', word: 'ELEFANT',  category: 'Dyr' },
+  { emoji: '🦊', word: 'RÆV',      category: 'Dyr' },
+  { emoji: '🐧', word: 'PINGVIN',  category: 'Dyr' },
+  { emoji: '🦋', word: 'SOMMERFUGL', category: 'Dyr' },
+  { emoji: '🐢', word: 'SKILDPADDE', category: 'Dyr' },
+  // Mad
+  { emoji: '🍎', word: 'ÆBLE',     category: 'Mad' },
+  { emoji: '🍌', word: 'BANAN',    category: 'Mad' },
+  { emoji: '🍕', word: 'PIZZA',    category: 'Mad' },
+  { emoji: '🍦', word: 'IS',       category: 'Mad' },
+  { emoji: '🎂', word: 'KAGE',     category: 'Mad' },
+  { emoji: '🍓', word: 'JORDBÆR',  category: 'Mad' },
+  { emoji: '🥕', word: 'GULEROD',  category: 'Mad' },
+  { emoji: '🍇', word: 'DRUE',     category: 'Mad' },
+  // Ting / verden
+  { emoji: '🌙', word: 'MÅNE',     category: 'Verden' },
+  { emoji: '⭐', word: 'STJERNE',  category: 'Verden' },
+  { emoji: '☀️', word: 'SOL',      category: 'Verden' },
+  { emoji: '🌈', word: 'REGNBUE',  category: 'Verden' },
+  { emoji: '🌸', word: 'BLOMST',   category: 'Verden' },
+  { emoji: '🏠', word: 'HUS',      category: 'Verden' },
+  { emoji: '🚗', word: 'BIL',      category: 'Verden' },
+  { emoji: '✈️', word: 'FLY',      category: 'Verden' },
+  { emoji: '🚂', word: 'TOG',      category: 'Verden' },
+  { emoji: '⛵', word: 'BÅD',      category: 'Verden' },
+  { emoji: '🎈', word: 'BALLON',   category: 'Verden' },
+  // Kroppen
+  { emoji: '👁️', word: 'ØJE',      category: 'Krop' },
+  { emoji: '👃', word: 'NÆSE',     category: 'Krop' },
+  { emoji: '👄', word: 'MUND',     category: 'Krop' },
+  { emoji: '👂', word: 'ØRE',      category: 'Krop' },
+  { emoji: '🦷', word: 'TAND',     category: 'Krop' },
+  { emoji: '🖐️', word: 'HÅND',     category: 'Krop' },
+];
+
+// ══════════════════════════════════════════════════════
+// TILSTAND
+// ══════════════════════════════════════════════════════
+let queue        = [];   // shuffled words this round
+let wordIndex    = 0;
+let currentWord  = null; // {emoji, word, category}
+let slots        = [];   // array of filled letters (or null)
+let usedTileIdxs = new Set(); // which tile positions are used
+let busy         = false;
+let score        = 0;
+
+// ══════════════════════════════════════════════════════
+// DOM
+// ══════════════════════════════════════════════════════
+const wordImageEl    = document.getElementById('word-image');
+const hintEl         = document.getElementById('hint');
+const slotsWrap      = document.getElementById('slots-wrap');
+const tilesArea      = document.getElementById('tiles-area');
+const btnDelete      = document.getElementById('btn-delete');
+const wrongOverlay   = document.getElementById('wrong-overlay');
+const correctOverlay = document.getElementById('correct-overlay');
+const confettiLayer  = document.getElementById('confetti-layer');
+const endScreen      = document.getElementById('end-screen');
+const wordCounter    = document.getElementById('word-counter');
+
+btnDelete.addEventListener('click', deleteLast);
+document.getElementById('play-again-btn').addEventListener('click', startGame);
+
+// ══════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════
+function startGame() {
+  endScreen.classList.remove('show');
+  score     = 0;
+  wordIndex = 0;
+  queue     = shuffle([...WORDS]).slice(0, 8); // 8 ord per runde
+  loadWord();
+}
+
+function loadWord() {
+  if (wordIndex >= queue.length) {
+    showEnd();
+    return;
+  }
+
+  currentWord  = queue[wordIndex];
+  slots        = new Array(currentWord.word.length).fill(null);
+  usedTileIdxs = new Set();
+  busy         = false;
+
+  // Progress
+  wordCounter.textContent = `${wordIndex + 1} / ${queue.length}`;
+
+  // Billede
+  wordImageEl.textContent = currentWord.emoji;
+  wordImageEl.classList.remove('pop');
+  void wordImageEl.offsetWidth;
+  wordImageEl.classList.add('pop');
+
+  // Kategori
+  hintEl.textContent = currentWord.category;
+
+  // Slots
+  renderSlots();
+
+  // Tiles: lav shuffled array af bogstaver + distraktorer
+  const letters = makeTileLetters(currentWord.word);
+  renderTiles(letters);
+
+  btnDelete.disabled = true;
+}
+
+// ── Lav flisebogstaver: ordets bogstaver + 2-3 distraktorer ──
+function makeTileLetters(word) {
+  const needed = word.split('');
+  // Vælg distraktorer: bogstaver der IKKE allerede er i ordet
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ'.split('');
+  const distractors = shuffle(alphabet.filter(l => !needed.includes(l)));
+  // Antal distraktorer: 2 for korte ord, 3 for lidt længere, op til 4 for lange
+  const numExtra = Math.min(Math.max(2, Math.floor(needed.length * 0.6)), 4);
+  const all = shuffle([...needed, ...distractors.slice(0, numExtra)]);
+  return all;
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER — SLOTS
+// ══════════════════════════════════════════════════════
+function renderSlots() {
+  slotsWrap.innerHTML = '';
+  for (let i = 0; i < currentWord.word.length; i++) {
+    const slot = document.createElement('div');
+    slot.classList.add('letter-slot');
+    slot.dataset.index = i;
+    if (slots[i] !== null) {
+      slot.classList.add('filled');
+      const span = document.createElement('span');
+      span.classList.add('slot-letter');
+      span.textContent = slots[i];
+      slot.appendChild(span);
+    }
+    slotsWrap.appendChild(slot);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER — TILES
+// ══════════════════════════════════════════════════════
+function renderTiles(letters) {
+  tilesArea.innerHTML = '';
+  letters.forEach((letter, i) => {
+    const tile = document.createElement('button');
+    tile.classList.add('tile', `tile-color-${i % 7}`);
+    tile.textContent = letter;
+    tile.dataset.idx = i;
+    if (usedTileIdxs.has(i)) tile.classList.add('used');
+    tile.addEventListener('click', () => onTileClick(tile, letter, i));
+    tilesArea.appendChild(tile);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// TILE KLIK
+// ══════════════════════════════════════════════════════
+function onTileClick(tileEl, letter, tileIdx) {
+  if (busy || usedTileIdxs.has(tileIdx)) return;
+
+  // Find næste tomme slot
+  const nextEmpty = slots.findIndex(s => s === null);
+  if (nextEmpty === -1) return; // alle slots fyldt
+
+  // Placer bogstavet
+  slots[nextEmpty] = letter;
+  usedTileIdxs.add(tileIdx);
+
+  // Animér flise
+  tileEl.classList.add('bounce');
+  tileEl.addEventListener('animationend', () => tileEl.classList.remove('bounce'), { once: true });
+  tileEl.classList.add('used');
+
+  // Opdater slot med drop-animation
+  renderSlots();
+  btnDelete.disabled = false;
+
+  // Check: er alle slots fyldt?
+  if (slots.every(s => s !== null)) {
+    checkAnswer();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// SLET SIDST
+// ══════════════════════════════════════════════════════
+function deleteLast() {
+  if (busy) return;
+  const lastFilled = [...slots].reverse().findIndex(s => s !== null);
+  if (lastFilled === -1) return;
+  const idx = slots.length - 1 - lastFilled;
+  slots[idx] = null;
+
+  // Find den flise der svarede til dette — fjern "used" fra den senest brugte
+  // Vi fjerner den sidst tilføjede bruges-markering
+  const usedArr = [...usedTileIdxs];
+  const last = usedArr[usedArr.length - 1];
+  usedTileIdxs.delete(last);
+
+  // Opdater flise visuelt
+  const tiles = tilesArea.querySelectorAll('.tile');
+  if (tiles[last]) tiles[last].classList.remove('used');
+
+  renderSlots();
+  if (slots.every(s => s === null)) btnDelete.disabled = true;
+}
+
+// ══════════════════════════════════════════════════════
+// CHECK SVAR
+// ══════════════════════════════════════════════════════
+async function checkAnswer() {
+  busy = true;
+  btnDelete.disabled = true;
+
+  const answer = slots.join('');
+  const correct = answer === currentWord.word;
+
+  // Markér slots
+  const slotEls = slotsWrap.querySelectorAll('.letter-slot');
+  slotEls.forEach(el => el.classList.add(correct ? 'correct' : 'wrong'));
+
+  if (correct) {
+    score++;
+    correctOverlay.classList.add('show');
+    correctOverlay.addEventListener('animationend', () => correctOverlay.classList.remove('show'), { once: true });
+    spawnConfetti();
+    await wait(800);
+    wordIndex++;
+    loadWord();
+  } else {
+    wrongOverlay.classList.add('show');
+    wrongOverlay.addEventListener('animationend', () => wrongOverlay.classList.remove('show'), { once: true });
+    await wait(700);
+    // Nulstil dette ord og prøv igen
+    slots        = new Array(currentWord.word.length).fill(null);
+    usedTileIdxs = new Set();
+    busy         = false;
+    // Re-render tiles (ny shuffle)
+    const letters = makeTileLetters(currentWord.word);
+    renderTiles(letters);
+    renderSlots();
+    btnDelete.disabled = true;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// KONFETTI
+// ══════════════════════════════════════════════════════
+const CONFETTI_COLORS = ['#f1c40f','#e74c3c','#3498db','#2ecc71','#9b59b6','#e67e22','#1abc9c','#fff'];
+
+function spawnConfetti() {
+  confettiLayer.innerHTML = '';
+  for (let i = 0; i < 55; i++) {
+    const piece = document.createElement('div');
+    piece.classList.add('confetti-piece');
+    piece.style.left     = Math.random() * 100 + 'vw';
+    piece.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+    piece.style.width    = (8 + Math.random() * 8) + 'px';
+    piece.style.height   = (10 + Math.random() * 10) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    const dur = 1.2 + Math.random() * 1.2;
+    piece.style.animationDuration = dur + 's';
+    piece.style.animationDelay    = Math.random() * 0.4 + 's';
+    piece.style.opacity = 0.85 + Math.random() * 0.15;
+    confettiLayer.appendChild(piece);
+    piece.addEventListener('animationend', () => piece.remove());
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// SLUT
+// ══════════════════════════════════════════════════════
+function showEnd() {
+  spawnConfetti();
+  setTimeout(() => spawnConfetti(), 600);
+  document.getElementById('end-detail').textContent =
+    `Du stavede ${score} ud af ${queue.length} ord rigtigt! 🌟`;
+  setTimeout(() => endScreen.classList.add('show'), 500);
+}
+
+// ══════════════════════════════════════════════════════
+// HJÆLPEFUNKTIONER
+// ══════════════════════════════════════════════════════
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ══════════════════════════════════════════════════════
+// KØR
+// ══════════════════════════════════════════════════════
+startGame();
+</script>
+</body>
+</html>
